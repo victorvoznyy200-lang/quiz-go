@@ -408,6 +408,21 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .rkav{width:40px;height:40px;display:grid;place-items:center;font-weight:700;font-size:1.6rem}.rkav img{width:34px;height:34px}
 .rkname{min-width:0}.rkname b{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkname small{display:block;color:var(--muted);font-size:.78rem}
 .rkval{font-weight:800;font-variant-numeric:tabular-nums;font-size:1.05rem}
+.rktabs{position:relative}.rktabs button{position:relative;z-index:1;transition:color .25s}
+.rktabs button[aria-selected="true"]{background:none!important}
+.rkind{position:absolute;top:4px;bottom:4px;left:4px;border-radius:10px;background:var(--acc-soft);transition:transform .35s cubic-bezier(.2,.8,.2,1),width .35s cubic-bezier(.2,.8,.2,1);z-index:0}
+.rkcard{overflow:hidden}.rkrow{will-change:transform}
+.rkrow.sk{animation:skp 1.2s ease-in-out infinite both}.rkrow.sk>span{background:var(--th);border-radius:8px;height:14px}
+.rkrow.sk .rkav{height:34px;width:34px;border-radius:50%}.rkrow.sk .rkname{height:28px}.rkrow.sk .rkval{width:44px}
+@keyframes skp{0%,100%{opacity:.55}50%{opacity:1}}
+.rkmsg{padding:14px 10px;color:var(--muted)}
+#rkR.spin svg{animation:spin .8s linear infinite}
+.wcard .wlogo{display:grid;place-items:center;margin-bottom:6px}.wcard .wlogo svg{width:44px;height:44px;fill:var(--ink)}
+.wbtns{display:grid;gap:8px;margin:16px 0 4px}.wbtns>*{justify-content:center;width:100%}
+.wnote{font-size:.82rem;color:var(--muted);margin:12px 0 4px}
+.aimp{margin-top:14px;border:1px solid var(--gb);border-radius:14px;padding:10px 12px}
+.aimp summary{cursor:pointer;font-weight:600;font-size:.9rem}
+.aimp p{margin:8px 0}.aimp textarea{width:100%;box-sizing:border-box;border:1px solid var(--gb);border-radius:12px;padding:10px;font:inherit;font-size:.85rem;background:var(--th);color:var(--ink);resize:vertical;word-break:break-all}
 .phead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .phead .avatar.big{width:84px;height:84px;border-radius:24px;margin:0;font-size:3.1rem}
 .phead h1{margin:0}.phead p{margin:4px 0 0;color:var(--muted)}
@@ -2473,7 +2488,7 @@ async function sbInit(){
   if(!SB) return;
   const {data}=await SB.auth.getSession(); sbUser=data.session?data.session.user:null;
   SB.auth.onAuthStateChange((ev,ses)=>{ const was=sbUser&&sbUser.id; sbUser=ses?ses.user:null; if((sbUser&&sbUser.id)!==was){ if(sbUser) sbPull(); renderSide(); if(view==="perfil") renderPerfil(); if(view==="rank") renderRank(); } });
-  if(sbUser) sbPull();
+  if(sbUser) sbPull(); else if(!cfg.name) welcome();
   document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&sbUser) sbPull(); });
   renderSide(); if(view==="perfil") renderPerfil();
 }
@@ -2515,9 +2530,9 @@ async function sbLoadBoard(force){
   const {data,error}=await SB.from("leaderboard").select("user_id,name,emoji,points,answered,tests,best_grade,streak,updated_at").order("points",{ascending:false}).limit(500);
   if(error) throw error; sbBoard=data||[]; sbBoardT=Date.now(); return sbBoard;
 }
-function askAuth(mode){
+function askAuth(mode,fromWelcome){
   if(!SB||document.getElementById("namebox")) return;
-  let m=mode||"in";
+  let m=mode||"in", impCode="", impOpen=false;
   const d=document.createElement("div"); d.id="namebox"; d.className="nameov";
   const draw=()=>{ d.innerHTML=`<form class="namecard authcard" autocomplete="on" novalidate>
     <div class="atabs" role="tablist"><button type="button" role="tab" aria-selected="${m==="in"}" data-m="in">Entrar</button><button type="button" role="tab" aria-selected="${m==="up"}" data-m="up">Criar conta</button></div>
@@ -2526,29 +2541,35 @@ function askAuth(mode){
     ${m==="up"?`<label class="afl" for="aName">Nome na classificação</label><input id="aName" maxlength="30" value="${esc(cfg.name||"")}" placeholder="O teu nome" autocomplete="nickname">`:''}
     <label class="afl" for="aMail">Email</label><input id="aMail" type="email" inputmode="email" autocomplete="email" placeholder="nome@exemplo.com" autocapitalize="off">
     <label class="afl" for="aPass">Password</label><input id="aPass" type="password" autocomplete="${m==="in"?"current-password":"new-password"}" placeholder="${m==="in"?"A tua password":"Pelo menos 6 caracteres"}">
+    <details class="aimp"${impOpen?' open':''}><summary>Importar progresso do Claude (opcional)</summary>
+      <p class="sub">No quiz do Claude, vai a «O meu progresso», depois «Passar o progresso» e «Copiar código». Cola aqui o código (começa por GO2-).</p>
+      <textarea id="aCode" rows="3" placeholder="GO2-…" autocapitalize="off" spellcheck="false">${esc(impCode)}</textarea></details>
     <span class="xmsg" id="aMsg"></span>
     <div class="namebtns"><button type="button" class="gbtn" id="aX">Cancelar</button><button class="vbtn" id="aOk">${m==="in"?"Entrar":"Criar conta"}</button></div></form>`;
-    d.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{m=b.dataset.m; draw();});
-    d.querySelector("#aX").onclick=close;
+    d.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ const c=d.querySelector("#aCode"); if(c){impCode=c.value; impOpen=d.querySelector(".aimp").open;} m=b.dataset.m; draw();});
+    d.querySelector("#aX").onclick=()=>close(true);
     const f=d.querySelector("form"), msg=d.querySelector("#aMsg"), ok=d.querySelector("#aOk");
     setTimeout(()=>{const i=d.querySelector(m==="up"?"#aName":"#aMail"); if(i&&!i.value) i.focus(); else d.querySelector("#aMail").focus();},200);
     f.onsubmit=async e=>{ e.preventDefault();
       const email=d.querySelector("#aMail").value.trim(), pass=d.querySelector("#aPass").value, nm=m==="up"?d.querySelector("#aName").value.trim():"";
       if(m==="up"&&!nm) return flashMsg(msg,"Escreve o nome que aparece na classificação.",false);
       if(!email||!pass) return flashMsg(msg,"Preenche o email e a password.",false);
+      const code=(d.querySelector("#aCode").value||"").trim(); let imported=null;
+      if(code){ try{ const o=await readCode(code); if(o.s.dev&&o.s.dev===store.dev) return flashMsg(msg,"Esse código é deste aparelho. Cola o código do quiz do Claude.",false); imported=o; }catch(e){ return flashMsg(msg,"O código não é válido. Confirma que o copiaste inteiro.",false); } }
       ok.disabled=true; ok.textContent=m==="in"?"A entrar…":"A criar…";
       try{
+        if(imported){ mergeStore(imported.s); if(!cfg.emoji&&imported.c&&imported.c.emoji){cfg.emoji=imported.c.emoji;cfg.emoV=2;saveCfg();} code&&(d.querySelector("#aCode").value=""); }
         if(m==="up"){ const {data,error}=await SB.auth.signUp({email,password:pass}); if(error) throw error;
           if(!data.session){ flashMsg(msg,"Conta criada. Confirma o email que recebeste e depois entra.",true); ok.disabled=false; ok.textContent="Criar conta"; return; }
           cfg.name=nm; if(!cfg.emoji){cfg.emoji=autoEmoji(nm);cfg.emoV=2;} saveCfg(); }
         else { const {error}=await SB.auth.signInWithPassword({email,password:pass}); if(error) throw error; }
-        close(); toast(m==="in"?"Sessão iniciada. O progresso está a sincronizar.":"Conta criada. Já estás na classificação.");
+        close(); toast((imported?`Progresso importado (${fmt(store.n)} respostas). `:"")+(m==="in"?"Sessão iniciada.":"Conta criada. Já estás na classificação."));
       }catch(err){ flashMsg(msg,SB_ERR(err.message),false); ok.disabled=false; ok.textContent=m==="in"?"Entrar":"Criar conta"; }
     };
   };
-  const close=()=>{d.classList.add("out"); setTimeout(()=>d.remove(),280);};
+  const close=(back)=>{d.classList.add("out"); setTimeout(()=>{d.remove(); if(back===true&&fromWelcome&&!sbUser) welcome();},280);};
   draw(); document.body.appendChild(d);
-  d.addEventListener("click",e=>{ if(e.target===d) close(); });
+  d.addEventListener("click",e=>{ if(e.target===d) close(true); });
 }
 async function sbOut(){ if(!SB) return; await sbPush(); await SB.auth.signOut(); sbLastLB=""; toast("Sessão terminada. O progresso continua guardado neste aparelho."); }
 function accountCard(){
@@ -2568,29 +2589,68 @@ function bindAccount(){
   if(s) s.onclick=async()=>{ s.disabled=true; s.textContent="A sincronizar…"; await sbPull(); s.disabled=false; s.textContent="Sincronizar agora"; toast("Progresso sincronizado."); };
   if(b) b.onchange=async()=>{ cfg.board=b.checked; saveCfg(); sbLastLB=""; await sbLB(); toast(b.checked?"Voltaste à classificação.":"Saíste da classificação."); };
 }
+const RK_TABS=[["points","Pontos"],["acc","Precisão"],["best","Melhor teste"],["streak","Sequência"]];
+const RK={
+  val:{points:r=>r.points, acc:r=>r.answered>=50?r.points/r.answered*100:null, best:r=>r.best_grade, streak:r=>r.streak>0?r.streak:null},
+  show:{points:r=>fmt(r.points), acc:r=>fmt(r.points/r.answered*100,1)+"%", best:r=>fmt(r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
+  sub:{points:r=>`${fmt(r.answered)} respostas`, acc:r=>`${fmt(r.points)} certas em ${fmt(r.answered)}`, best:r=>`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
+  empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", streak:"Ninguém tem uma sequência ativa."}
+};
+const rkReduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+// a página da classificação é desenhada uma vez; trocar de aba ou atualizar só mexe na lista (as linhas deslizam para a nova posição)
 async function renderRank(){
   tipHide();
-  const tabs=[["points","Pontos"],["acc","Precisão"],["best","Melhor teste"],["streak","Sequência"]];
   $("#main").innerHTML=`<div class="top appear"><div><h1>Classificação</h1><p>Pontos = respostas certas. A precisão só conta a partir de 50 respostas.</p></div>
-    <div class="topr"><button class="gbtn" id="rkR">${I.refresh}Atualizar</button></div></div>
-    ${sbUser?'':`<section class="card appear rkcta"><div><b>Ainda não estás na classificação.</b><p class="sub" style="margin:4px 0 0">Cria uma conta e o teu progresso deste aparelho entra logo.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="vbtn" id="rkUp">Criar conta</button><button class="gbtn" id="rkIn">Entrar</button></div></section>`}
-    <div class="rktabs appear" role="tablist">${tabs.map(([k,l])=>`<button role="tab" aria-selected="${rankTab===k}" data-rk="${k}">${l}</button>`).join("")}</div>
-    <section class="card appear" id="rkList"><p class="sub">A carregar a classificação…</p></section>`;
-  $("#rkR").onclick=()=>{ sbBoard=null; renderRank(); };
+    <div class="topr"><button class="gbtn" id="rkR">${I.refresh}<span>Atualizar</span></button></div></div>
+    ${sbUser?'':`<section class="card appear rkcta"><div><b>Ainda não estás na classificação.</b><p class="sub" style="margin:4px 0 0">Cria uma conta e o progresso deste aparelho entra logo.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="vbtn" id="rkUp">Criar conta</button><button class="gbtn" id="rkIn">Entrar</button></div></section>`}
+    <div class="rktabs appear" role="tablist"><span class="rkind" id="rkInd"></span>${RK_TABS.map(([k,l])=>`<button role="tab" aria-selected="${rankTab===k}" data-rk="${k}">${l}</button>`).join("")}</div>
+    <section class="card appear rkcard"><ol class="rk" id="rkList">${Array.from({length:5},(_,k)=>`<li class="rkrow sk" style="animation-delay:${k*.08}s"><span class="rkpos"></span><span class="rkav"></span><span class="rkname"><b></b><small></small></span><span class="rkval"></span></li>`).join("")}</ol></section>`;
   if($("#rkUp")){ $("#rkUp").onclick=()=>askAuth("up"); $("#rkIn").onclick=()=>askAuth("in"); }
-  document.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{ rankTab=b.dataset.rk; renderRank(); });
-  let rows; try{ if(sbUser) await sbLB(); rows=await sbLoadBoard(); }catch(e){ $("#rkList").innerHTML=`<p class="sub">Não foi possível carregar a classificação. ${esc(SB_ERR(e.message))}</p>`; return; }
-  if(view!=="rank") return;
-  const val={points:r=>r.points, acc:r=>r.answered>=50?r.points/r.answered*100:null, best:r=>r.best_grade, streak:r=>r.streak};
-  const show={points:r=>fmt(r.points), acc:r=>fmt(r.points/r.answered*100,1)+"%", best:r=>fmt(r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")};
-  const subt={points:r=>`${fmt(r.answered)} respostas`, acc:r=>`${fmt(r.points)} certas em ${fmt(r.answered)}`, best:r=>`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`};
-  const f=val[rankTab]; const list=rows.filter(r=>f(r)!==null&&f(r)!==undefined&&(rankTab!=="streak"||r.streak>0)).sort((a,b)=>f(b)-f(a)||b.points-a.points);
-  const me=sbUser&&sbUser.id;
-  if(!list.length){ $("#rkList").innerHTML=`<p class="sub">${rankTab==="acc"?"Ainda ninguém chegou às 50 respostas.":rankTab==="best"?"Ainda ninguém fez um teste de 30 min.":rankTab==="streak"?"Ninguém tem uma sequência ativa.":"Ainda não há ninguém na classificação. Sê o primeiro."}</p>`; return; }
+  rkInd(false);
+  document.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{ if(rankTab===b.dataset.rk) return; rankTab=b.dataset.rk;
+    document.querySelectorAll("[data-rk]").forEach(x=>x.setAttribute("aria-selected",x===b)); rkInd(true); rkDraw(false); });
+  const rb=$("#rkR"); rb.onclick=async()=>{ rb.classList.add("spin"); rb.disabled=true; try{ await rkLoad(true); rkDraw(false); }catch(e){ toast("Não foi possível atualizar. "+SB_ERR(e.message)); } setTimeout(()=>{rb.classList.remove("spin"); rb.disabled=false;},400); };
+  try{ if(sbUser) await sbLB(); await rkLoad(false); }catch(e){ if(view==="rank") $("#rkList").innerHTML=`<li class="rkmsg">Não foi possível carregar a classificação. ${esc(SB_ERR(e.message))}</li>`; return; }
+  if(view==="rank") rkDraw(true);
+}
+addEventListener("resize",()=>{ if(view==="rank") rkInd(false); });
+async function rkLoad(force){ return sbLoadBoard(force); }
+function rkInd(anim){ const ind=$("#rkInd"), b=document.querySelector('[data-rk][aria-selected="true"]'); if(!ind||!b) return;
+  ind.style.transition=anim&&!rkReduce()?"":"none"; ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft-4}px)`; if(!anim) void ind.offsetWidth; }
+function rkDraw(first){
+  const ol=$("#rkList"); if(!ol||!sbBoard) return;
+  const f=RK.val[rankTab], me=sbUser&&sbUser.id;
+  const list=sbBoard.filter(r=>f(r)!==null&&f(r)!==undefined).sort((a,b)=>f(b)-f(a)||b.points-a.points);
+  // posições antigas, para as linhas deslizarem (FLIP)
+  const old={}; ol.querySelectorAll(".rkrow[data-u]").forEach(li=>old[li.dataset.u]=li.getBoundingClientRect().top);
+  if(!list.length){ ol.innerHTML=`<li class="rkmsg">${RK.empty[rankTab]}</li>`; return; }
   let pos=0, lastV=null;
-  $("#rkList").innerHTML=`<ol class="rk">${list.map((r,k)=>{ const v=f(r); if(v!==lastV){pos=k+1; lastV=v;}
-    return `<li class="rkrow${r.user_id===me?' me':''}${pos<=3?' top'+pos:''}"><span class="rkpos">${pos}</span><span class="rkav">${r.emoji?emoImg(r.emoji):esc((r.name||"?").charAt(0).toUpperCase())}</span>
-      <span class="rkname"><b>${esc(r.name||"Sem nome")}${r.user_id===me?' <span class="tag">tu</span>':''}</b><small>${subt[rankTab](r)}</small></span><span class="rkval">${show[rankTab](r)}</span></li>`; }).join("")}</ol>`;
+  ol.innerHTML=list.map((r,k)=>{ const v=f(r); if(v!==lastV){pos=k+1; lastV=v;}
+    return `<li class="rkrow${r.user_id===me?' me':''}${pos<=3?' top'+pos:''}" data-u="${esc(r.user_id)}"><span class="rkpos">${pos}</span><span class="rkav">${r.emoji?emoImg(r.emoji):esc((r.name||"?").charAt(0).toUpperCase())}</span>
+      <span class="rkname"><b>${esc(r.name||"Sem nome")}${r.user_id===me?' <span class="tag">tu</span>':''}</b><small>${RK.sub[rankTab](r)}</small></span><span class="rkval">${RK.show[rankTab](r)}</span></li>`; }).join("");
+  if(rkReduce()) return;
+  ol.querySelectorAll(".rkrow").forEach((li,k)=>{
+    const o=old[li.dataset.u];
+    if(first||o===undefined){ li.animate([{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:380,delay:first?Math.min(k,12)*45:0,easing:"cubic-bezier(.2,.8,.2,1)",fill:"backwards"}); return; }
+    const dy=o-li.getBoundingClientRect().top;
+    if(Math.abs(dy)>1) li.animate([{transform:`translateY(${dy}px)`},{transform:"none"}],{duration:460,easing:"cubic-bezier(.2,.8,.2,1)"});
+    li.querySelectorAll(".rkval,.rkname small,.rkpos").forEach(x=>x.animate([{opacity:0},{opacity:1}],{duration:300,easing:"ease-out"}));
+  });
+}
+// primeira visita ao site: escolher entre conta e uso só neste aparelho
+function welcome(){
+  if(!SB||document.getElementById("namebox")) return;
+  const d=document.createElement("div"); d.id="namebox"; d.className="nameov";
+  d.innerHTML=`<div class="namecard wcard"><div class="wlogo">${LOGO}</div><h2>Bem-vindo ao quiz de GO</h2>
+    <p>Com conta, o progresso fica guardado em todos os aparelhos e entras na classificação da turma.</p>
+    <div class="wbtns"><button class="vbtn" id="wUp">Criar conta</button><button class="gbtn" id="wIn">Já tenho conta</button></div>
+    <p class="wnote">Já treinaste no Claude? Ao criar conta ou entrar, podes colar o teu código de progresso e ele junta-se à conta.</p>
+    <button class="linkbtn" id="wSkip">Continuar sem conta</button></div>`;
+  document.body.appendChild(d);
+  const go2=fn=>{ d.remove(); fn(); };
+  d.querySelector("#wUp").onclick=()=>go2(()=>askAuth("up",true));
+  d.querySelector("#wIn").onclick=()=>go2(()=>askAuth("in",true));
+  d.querySelector("#wSkip").onclick=()=>go2(()=>askName(false));
 }
 
 // ───────── PERFIL: histórico de testes e progresso por área
@@ -3111,7 +3171,7 @@ function finish(){
   window.scrollTo(0,0);
 }
 
-if(cfg.name) saveCfg(); renderSide(); renderPainel(); if(!cfg.name) askName(false);
+if(cfg.name) saveCfg(); renderSide(); renderPainel(); if(!cfg.name&&!SB) askName(false);
 sbInit();
 </script>
 </body></html>
