@@ -827,7 +827,7 @@ null, // (pergunta das têxteis removida a pedido da Guna, 20 nov.; o lugar fica
 ["W4","t","O que significa DART no modelo de cocriação?",["Diálogo, acesso, risco-benefício, transparência","Design, ação, resultado, tempo","Dados, análise, relatório, teste","Distribuição, armazém, rota, transporte"],"Prahalad & Ramaswamy (2004)."],
 ["W4","t","Quem propôs o modelo DART de cocriação?",["Prahalad & Ramaswamy (2004)","Ranjan & Read (2016)","Slack (1994)","Baines et al. (2009)"],"Ranjan & Read (2016) é a referência para coprodução."],
 ["W4","t","Qual é a relação entre cocriação e coprodução?",["Cocriação = coprodução + valor em uso","Coprodução = cocriação + valor em uso","São exatamente a mesma coisa","Cocriação exclui o cliente"],"Ranjan & Read (2016)."],
-["W4","t","O LEGO Ideas exige 10 000 apoiantes antes de produzir. Que vantagem operacional tem?",["Menor risco de previsão","Maior variedade de stock","Mais custos de posse","Prazos mais longos"],"Cocriação a montante: só se produz o que tem procura demonstrada."],
+null, // (pergunta da vantagem dos 10 000 apoiantes do LEGO Ideas removida a pedido da Guna, 20 nov.; o lugar fica para não mudar os ids)
 ["W4","t","Um efeito da cocriação/coprodução nas operações é…",["Mais variabilidade no processo, porque o cliente participa","Menos necessidade de interfaces simples","O tempo do cliente deixa de contar","Qualidade só da responsabilidade da empresa"],"Impactos: variabilidade, interfaces simples, capacidade (o tempo do cliente conta), competências, qualidade partilhada."],
 
 // ───────── W5 · Processos, capacidade, layout
@@ -2847,7 +2847,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795210656";
+const BUILD="1795210716";
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD&&!(view==="q"&&S&&!S.done)&&!document.getElementById("namebox")) location.reload(); }catch(e){} }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 setInterval(checkUpdate,10*60*1000);
