@@ -516,6 +516,46 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .kpi{padding:16px;gap:8px}
 .kpi .bignum{font-size:1.7rem}
 .kpi .bignum.acc{color:var(--acc);text-shadow:0 0 18px var(--acc-glow)}
+.sure{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:.08em;padding:4px 9px;border-radius:8px;background:#E5484D;color:#fff;margin-bottom:8px;animation:surep 2.4s ease-in-out infinite}
+@keyframes surep{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.45)}50%{box-shadow:0 0 0 6px rgba(229,72,77,0)}}
+.nav[data-view="sai"] .badge{background:var(--bad);color:#fff}
+.saibody{display:flex;flex-direction:column;gap:14px;overflow:hidden;padding:2px;margin:-2px}
+.sth{margin:0}
+.lesson h3{font-family:var(--sans);font-weight:700;font-size:1.02rem;margin:8px 0 0}
+.lesson .note{font-size:.85rem;color:var(--muted)}
+.mx3 th{white-space:nowrap}
+.sx2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sxwrap{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+.sxstep{margin:6px 0 0}
+.sxt,.sxmx{border-collapse:separate;border-spacing:0;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums}
+.sxt th,.sxt td,.sxmx th,.sxmx td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;white-space:nowrap}
+.sxt thead th,.sxmx thead th{background:var(--th);font-size:.78rem;color:var(--muted)}
+.sxt small{color:var(--muted);font-size:.78rem}
+.sxt tr.tot td,.sxt tr.tot th{font-weight:700}
+.sxin{width:82px;font:inherit;padding:7px 9px;border-radius:10px;border:1px solid var(--line);background:var(--base);color:var(--ink);font-variant-numeric:tabular-nums}
+.sxin:focus{outline:2px solid var(--acc);outline-offset:1px}
+.sxv{font-weight:700;display:inline-flex;flex-direction:column}.sxv.ok{color:var(--ok)}.sxv.bad{color:var(--bad)}.sxv small{font-weight:400}
+.sxseg{display:inline-flex;gap:3px;padding:3px;border-radius:10px;background:var(--th)}
+.sxseg button{border:0;font:inherit;font-weight:700;width:32px;height:30px;border-radius:8px;background:none;color:var(--muted);cursor:pointer;transition:background .2s,color .2s}
+.sxseg button.on{background:var(--acc);color:var(--on-acc)}
+.sxseg button.right{background:var(--ok-soft);color:var(--ink);box-shadow:inset 0 0 0 2px var(--ok)}
+.sxseg button.wrong{background:var(--bad);color:#fff}
+.sxseg button:disabled{cursor:default}
+.sxmx td{text-align:center;min-width:70px}.sxmx tbody th{text-align:center;background:var(--th);color:var(--muted)}
+.sxmx td.cAC,.sxmx td.cAA,.sxmx td.cAB{background:var(--bad-soft)}.sxmx td.cCA,.sxmx td.cBA{background:var(--blue-soft)}
+.sxq{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;background:var(--th)}
+.sxq>p{margin:0;font-weight:600}
+.sxopts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sxopts button{font:inherit;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--base);color:var(--ink);cursor:pointer;transition:background .2s,border-color .2s}
+.sxopts button.right{border-color:var(--ok);background:var(--ok-soft)}
+.sxopts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.sxopts button:disabled{cursor:default}.sxopts button:disabled:not(.right):not(.wrong){opacity:.6}
+.sxe{margin:0;font-size:.9rem}
+.sxres{margin:0;font-size:.88rem;color:var(--muted)}
+.sxend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:14px;border-radius:14px;background:var(--acc-soft)}
+.sxend .dbtn{margin-left:auto}
+@media (hover:hover){.sxopts button:not(:disabled):hover{border-color:var(--acc)}.sxseg button:not(:disabled):hover{color:var(--ink)}}
+@media (max-width:640px){.sx2col{grid-template-columns:1fr}.sxopts{grid-template-columns:1fr}.sxin{width:60px;padding:6px 7px}.sxt{font-size:.84rem}.sxt th,.sxt td{padding:7px 4px}.sxv small{font-size:.7rem}.sxend .dbtn{margin-left:0}}
 .appear{animation:up .7s both cubic-bezier(.2,.8,.2,1)}
 @keyframes up{from{opacity:.001;transform:translateY(14px)}to{opacity:1;transform:none}}
 
@@ -2245,6 +2285,7 @@ const I = {
   list:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
   goal:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>',
   spark:'<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
   play:'<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg>',
   refresh:'<svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
   flag:'<svg viewBox="0 0 24 24"><path d="M5 21V4h11l-2 4 2 4H5"/></svg>',
@@ -2260,13 +2301,13 @@ function renderSide(){
   const nd=nDue(); const dark=document.documentElement.getAttribute("data-mode")==="dark";
   const cur=v=>view===v||(view==="q"&&S&&((v==="treino"&&S.mode==="treino")||(v==="teste"&&S.mode==="teste")||(v==="revisao"&&S.mode==="revisao")||(v==="estudar"&&S.mode==="estudo")||(v==="calc"&&S.mode==="calc")))||(v==="estudar"&&view==="cap");
   const it=(v,ic,l,b)=>`<button class="nav" data-view="${v}" ${cur(v)?'aria-current="page"':''}>${I[ic]}<span>${l}</span>${b?`<span class="badge">${b}</span>`:''}</button>`;
-  const NAVS=[["painel","home","O meu progresso"],["rank","trophy","Classificação"],["estudar","book","Estudar"],["calc","calc","Cálculos"],["treino","train","Treino"],["revisao","rev","Revisão"],["teste","test","Teste de 30 min"]], mc=NAVS.find(n=>cur(n[0]));
+  const NAVS=[["painel","home","O meu progresso"],["rank","trophy","Classificação"],["sai","star","Sai no teste"],["estudar","book","Estudar"],["calc","calc","Cálculos"],["treino","train","Treino"],["revisao","rev","Revisão"],["teste","test","Teste de 30 min"]], mc=NAVS.find(n=>cur(n[0]));
   const op=$("#navpill"); if(op&&op.classList.contains("on")){ const m=new DOMMatrix(getComputedStyle(op).transform); pillPos={x:m.m41,y:m.m42,w:op.offsetWidth,h:op.offsetHeight}; }
   $("#side").classList.remove("mopen");
   $("#side").innerHTML=`<div class="brand">${LOGO}<span>Operações</span></div>
     <button class="mnav" id="mnav" aria-expanded="false" aria-controls="navlist">${mc?I[mc[1]]:''}<span>${mc?mc[2]:'O meu perfil'}</span>${nd&&!(mc&&mc[0]==="revisao")?'<i class="mdot"></i>':''}<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="navlist" id="navlist"><div class="navlabel">Principal</div>${it("painel","home","O meu progresso")}${SB?it("rank","trophy","Classificação"):''}
-    <div class="navlabel">Praticar</div>${it("estudar","book","Estudar")}${it("calc","calc","Cálculos")}${it("treino","train","Treino")}${it("revisao","rev","Revisão",nd||"")}${it("teste","test","Teste de 30 min")}</div>
+    <div class="navlabel">Praticar</div>${it("sai","star","Sai no teste","!")}${it("estudar","book","Estudar")}${it("calc","calc","Cálculos")}${it("treino","train","Treino")}${it("revisao","rev","Revisão",nd||"")}${it("teste","test","Teste de 30 min")}</div>
     <button class="tgl" id="tgl" aria-label="Mudar para modo ${dark?'claro':'escuro'}">${dark?I.moon:I.sun}<span class="lb">Modo ${dark?'escuro':'claro'}</span><span class="sw"><i></i></span></button>
     <button class="me" id="me" title="O meu perfil" ${view==="perfil"?'aria-current="page"':''}><div class="avatar${cfg.emoji?' emo':''}">${uinit()}</div><div><b>${uname()}</b><small>Perfil e histórico de testes</small></div></button><span class="navpill" id="navpill"></span>`;
   movePill();
@@ -2294,7 +2335,7 @@ addEventListener("resize",()=>{pillPos=null;movePill();});
 function go(v){
   if(view==="q" && S && S.mode==="teste" && !S.done && v!=="q"){ const b=document.querySelector(`[data-view="${v}"]`); if(!b.dataset.arm){ b.dataset.arm=1; b.querySelector("span").textContent="Sair do teste?"; return; } }
   clearInterval(timer); S=null; view=v; renderSide();
-  if(v==="painel") renderPainel(); else if(v==="treino") renderTreino(); else if(v==="teste") renderTesteIntro(); else if(v==="revisao") renderRevisaoIntro(); else if(v==="estudar") renderEstudar(); else if(v==="perfil") renderPerfil(); else if(v==="calc") renderCalc(); else if(v==="rank") renderRank();
+  if(v==="painel") renderPainel(); else if(v==="treino") renderTreino(); else if(v==="teste") renderTesteIntro(); else if(v==="revisao") renderRevisaoIntro(); else if(v==="estudar") renderEstudar(); else if(v==="perfil") renderPerfil(); else if(v==="calc") renderCalc(); else if(v==="rank") renderRank(); else if(v==="sai") renderSai();
   window.scrollTo(0,0);
 }
 let toastT=null;
@@ -2494,6 +2535,154 @@ function renderCalc(){
   $("#callall").onclick=()=>startCalc("all");
   document.querySelectorAll("[data-calc]").forEach(b=>b.onclick=()=>startCalc(b.dataset.calc));
 }
+// ───────── SAI NO TESTE: armazém (ABC cruzado, localização, picking), desenvolvimento e escolha múltipla
+// ───────── SAI NO TESTE: resumo do armazém (W7) e exercício-modelo
+const SAI_LESSON=`
+<h3>1. Dois ABC, duas perguntas diferentes</h3>
+<div class="scroll"><table><thead><tr><th></th><th>ABC por faturação</th><th>ABC por volume</th></tr></thead><tbody>
+<tr><td><b>Conta</b></td><td>Preço unitário × utilização anual</td><td>Volume unitário × utilização anual</td></tr>
+<tr><td><b>Pergunta</b></td><td>Onde está o <b>capital</b>?</td><td>Onde está o <b>espaço</b>?</td></tr>
+<tr><td><b>Serve para</b></td><td>Gerir o investimento em stock e controlar os artigos de maior faturação</td><td>Planear e alocar o espaço de armazenagem</td></tr>
+</tbody></table></div>
+<p><b>Regra:</b> A = 20% das referências → 80% do valor · B = 30% → 15% · C = 50% → 5%. Ordena do maior para o menor. Com 7 artigos, a aula ficou com <b>2 A, 3 B e 2 C</b>.</p>
+<h3>2. A matriz cruzada (é aqui que estão as conclusões)</h3>
+<p>O mesmo artigo pode ser <b>A num critério e C no outro</b>. Cruza as duas classes numa matriz 3×3. Em cada célula, a decisão é diferente:</p>
+<div class="scroll"><table class="mx3"><thead><tr><th>Faturação ↓ · Volume →</th><th>A (muito espaço)</th><th>B</th><th>C (pouco espaço)</th></tr></thead><tbody>
+<tr><th>A (muito capital)</th><td>Controlo apertado <b>e</b> espaço com localização estudada</td><td>Controlo apertado; espaço normal</td><td><b>Controlo apertado do stock</b>, pouco espaço (N e O na aula)</td></tr>
+<tr><th>B</th><td>Atenção ao espaço; controlo intermédio</td><td>Gestão intermédia</td><td>Controlo intermédio; pouco espaço</td></tr>
+<tr><th>C (pouco capital)</th><td><b>Espaço e localização estudada, pouco capital</b> (K e L na aula)</td><td>Atenção ao espaço; controlo simples</td><td>Gestão simples, contagens pouco frequentes</td></tr>
+</tbody></table></div>
+<p class="note">As conclusões para N, O, K e L vêm da aula. As outras células seguem a mesma lógica: faturação pede controlo, volume pede espaço.</p>
+<h3>3. Onde fica cada artigo: localização fixa ou dinâmica</h3>
+<div class="scroll"><table><thead><tr><th></th><th>Fixa (nível de picking)</th><th>Dinâmica (reserva)</th></tr></thead><tbody>
+<tr><td><b>Regra</b></td><td>Cada artigo tem <b>sempre o mesmo lugar</b>; o operador aprende onde está</td><td><b>Qualquer posição livre</b> recebe qualquer artigo; o sistema escolhe a posição livre mais perto do picking e num nível baixo</td></tr>
+<tr><td><b>Uso do espaço</b></td><td>Menor (lugares vazios reservados)</td><td>Maior</td></tr>
+<tr><td><b>Dependência do sistema informático</b></td><td>Baixa</td><td>Alta</td></tr>
+<tr><td><b>Facilidade para o operador</b></td><td>Alta</td><td>Depende do terminal</td></tr>
+</tbody></table></div>
+<p><b>Na prática (caso Jerónimo Martins):</b> o <b>nível inferior é picking</b> (localização fixa) e os <b>níveis superiores são reserva</b> (localização dinâmica). O <b>abaixamento</b> repõe o picking a partir da reserva. Os artigos de grande rotação ficam <b>ao chão</b>, perto dos cais.</p>
+<h3>4. Picking: a operação mais cara</h3>
+<p>Picking é recolher produtos para um pedido específico. Pode chegar a <b>55% dos custos operacionais</b> do armazém (Koster, Le-Duc & Roodbergen, 2007). Há cinco decisões que encurtam o percurso:</p>
+<ol><li><b>Layout interno:</b> quantos corredores, com que comprimento e largura.</li><li><b>Atribuição de localizações:</b> artigos de <b>alta rotação perto do cais</b> e em níveis baixos.</li><li><b>Rotas de recolha:</b> por que ordem se percorrem as posições.</li><li><b>Agrupamento de pedidos:</b> vários pedidos numa só volta.</li><li><b>Zonas:</b> dividir o armazém e pôr operadores em cada zona.</li></ol>
+<h3>5. Layout e fluxos</h3>
+<div class="scroll"><table><thead><tr><th>Em linha reta</th><th>Em U</th><th>Cross-docking</th></tr></thead><tbody>
+<tr><td>Receção e expedição em <b>lados opostos</b></td><td>Cais <b>no mesmo lado</b>; receção e expedição partilham recursos</td><td>Passa da receção à expedição <b>sem ser armazenado</b></td></tr></tbody></table></div>
+<p><b>Princípios:</b> separar a receção da expedição · movimentos em linha reta · concentrar o stock · movimentar o mínimo de carga possível.</p>
+<p><b>Operações:</b> receção (às cegas ou com aviso EDI) → arrumação → abaixamento (FIFO ou <b>FEFO</b>) → execução/picking (evitar erros, por exemplo pesando) → expedição (conferir e carregar).</p>
+<h3>6. Como responder no teste (receita)</h3>
+<ol><li>Calcula a <b>faturação</b> e o <b>volume</b> de cada artigo e os totais.</li><li>Ordena e classifica em <b>A, B e C</b> nos dois critérios. Mostra as percentagens.</li><li>Monta a <b>matriz 3×3</b>.</li><li>Tira conclusões: os <b>A em faturação</b> pedem controlo apertado; os <b>A em volume</b> pedem espaço e localização estudada; os de <b>maior utilização</b> ficam perto dos cais, no picking (localização fixa); a reserva pode ser dinâmica.</li></ol>`;
+
+const SAI_EX=`<p class="eq">Produtos K a Q (dados da aula)</p>
+<div class="scroll"><table><thead><tr><th></th><th>K</th><th>L</th><th>M</th><th>N</th><th>O</th><th>P</th><th>Q</th></tr></thead><tbody>
+<tr><td>Valor unitário (€)</td><td>7</td><td>19</td><td>6</td><td>21</td><td>24</td><td>10</td><td>13</td></tr>
+<tr><td>Volume unitário (dm³)</td><td>30</td><td>40</td><td>5</td><td>3</td><td>2</td><td>2</td><td>1</td></tr>
+<tr><td>Utilização anual</td><td>9</td><td>3</td><td>11</td><td>8</td><td>7</td><td>11</td><td>7</td></tr>
+<tr><td><b>Faturação (€)</b></td><td>63</td><td>57</td><td>66</td><td>168</td><td>168</td><td>110</td><td>91</td></tr>
+<tr><td><b>Volume (dm³)</b></td><td>270</td><td>120</td><td>55</td><td>24</td><td>14</td><td>22</td><td>7</td></tr>
+</tbody></table></div>
+<ol><li><b>Faturação</b> (total 723): N 168 e O 168 → <b>A</b> (46%) · P 110, Q 91, M 66 → <b>B</b> · K 63, L 57 → <b>C</b>.</li>
+<li><b>Volume</b> (total 512): K 270 e L 120 → <b>A</b> (76%) · M 55, N 24, P 22 → <b>B</b> · O 14, Q 7 → <b>C</b>.</li>
+<li><b>Matriz:</b> N = A/B · O = A/C · P e M = B/B · Q = B/C · K e L = C/A.</li>
+<li><b>Conclusões:</b> N e O pedem <b>controlo apertado do stock</b> (concentram o capital). K e L pedem <b>espaço e localização estudada</b>, mas pouco capital. M e P, com a maior utilização (11), devem ficar <b>perto dos cais, no picking</b>.</li></ol>`;
+
+
+let SX=null;
+const saiReduce=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function renderSai(){
+  tipHide();
+  $("#main").innerHTML=`<div class="top appear"><div><span class="sure">SAI DE CERTEZA NO TESTE</span><h1>Sai no teste</h1><p>O problema do armazém: o professor dá uma tabela de produtos e pede conclusões operacionais (ABC cruzado, layout, localização e picking da W7).</p></div></div>
+  <div id="saiBody" class="saibody">${saiArm()}</div>`;
+  $("#saiBody").querySelectorAll(".card").forEach((c,i)=>{c.classList.add("appear");c.style.animationDelay=(.06+i*.06)+"s";});
+  saiBind();
+}
+function saiArm(){
+  return `<section class="card"><div class="ctop"><div><span class="prio ALTA">PRIORIDADE MÁXIMA</span><h3>Exercício do armazém</h3><span class="sub">W7 · ABC cruzado (faturação × volume) e decisões de layout, localização e picking</span></div></div>
+    <p class="cwhy">O professor dá uma tabela de produtos e pede conclusões operacionais. Aqui tens sempre números novos. Fazes as contas, classificas, montas a matriz e tiras as conclusões, passo a passo.</p>
+    <div class="cfoot"><button class="dbtn" id="sxNew">${I.play}${SX?'Novo exercício':'Começar um exercício'}</button><span class="cstat">${store.saiEx?`Feitos: ${store.saiEx.n} · melhor: ${fmt(store.saiEx.best)}%`:'Ainda não fizeste nenhum'}</span></div>
+    <div id="sxBox">${SX?sxHTML():''}</div></section>
+  <section class="card"><details class="cex"><summary>Exercício-modelo resolvido (produtos K a Q, da aula)</summary><div class="cexb lesson">${SAI_EX}</div></details></section>
+  <section class="card"><h3 class="sth">O que tens de saber</h3><div class="lesson">${SAI_LESSON}</div></section>`;
+}
+// ── gerador: 7 produtos com classes bem separadas nos dois critérios
+function sxGen(){
+  const sets=["DEFGHIJ","KLMNOPQ","RSTUVWX"];
+  for(let t=0;t<2000;t++){
+    const L=sets[R(0,2)].split(""), it=L.map(l=>({l,v:R(2,30),d:R(1,40),u:R(2,15)}));
+    it.forEach(x=>{x.f=x.v*x.u;x.m=x.d*x.u;});
+    const cls=key=>{ const s=[...it].sort((a,b)=>b[key]-a[key]); if(s[1][key]===s[2][key]||s[4][key]===s[5][key]) return null; s.forEach((x,i)=>x["c"+key]=i<2?"A":i<5?"B":"C"); return s; };
+    if(!cls("f")||!cls("m")) continue;
+    const us=[...it].sort((a,b)=>b.u-a.u); if(us[0].u===us[1].u) continue;
+    const grp=(k,c)=>it.filter(x=>x["c"+k]===c).map(x=>x.l).join("");
+    const g=[grp("f","A"),grp("m","A"),grp("f","C"),grp("m","C")]; if(new Set(g).size<4) continue;
+    if(!it.some(x=>x.cf!==x.cm&&(x.cf==="A"||x.cm==="A"))) continue;
+    if(!it.some(x=>(x.cf==="A"&&x.cm==="C")||(x.cf==="C"&&x.cm==="A"))) continue;
+    const tf=it.reduce((a,x)=>a+x.f,0), tm=it.reduce((a,x)=>a+x.m,0);
+    return {it,tf,tm,step:1,in:{},cl:{},ans:{},score:{c:0,k:0,q:0}};
+  }
+}
+const sxPair=s=>s.split("").join(" e ");
+function sxQs(){
+  const it=SX.it, by=(k,c)=>it.filter(x=>x["c"+k]===c).map(x=>x.l).join("");
+  const Af=by("f","A"), Am=by("m","A"), Cf=by("f","C"), Cm=by("m","C");
+  const top=[...it].sort((a,b)=>b.u-a.u), maxF=[...it].sort((a,b)=>b.f-a.f)[0].l, maxM=[...it].sort((a,b)=>b.m-a.m)[0].l;
+  const uniq=(arr,n)=>{ const o=[]; for(const x of arr) if(!o.includes(x)) o.push(x); return o.slice(0,n); };
+  const near=uniq([top[0].l,maxM,maxF,top[6].l,top[1].l,top[2].l],4);
+  return [
+    {q:"Que artigos pedem controlo apertado do stock?",o:[Af,Am,Cf,Cm].map(sxPair),e:`São os A em faturação (${sxPair(Af)}): concentram o capital. ${sxPair(Am)} são os A em volume, que pedem espaço.`},
+    {q:"Que artigos pedem espaço e localização estudada?",o:[Am,Af,Cm,Cf].map(sxPair),e:`São os A em volume (${sxPair(Am)}): ocupam a maior parte do espaço. Ser A em volume não quer dizer ter muito capital.`},
+    {q:"Que artigo deve ficar mais perto dos cais, no nível de picking?",o:near,e:`É o de maior utilização anual (${top[0].l}, ${top[0].u} un./ano): alta rotação perto do cais encurta cada recolha. O de maior faturação ou de maior volume não é, por isso, o mais recolhido.`},
+    {q:"Que tipo de localização usar no picking e na reserva?",o:["Fixa no picking, dinâmica na reserva","Dinâmica no picking, fixa na reserva","Fixa nos dois, para o operador aprender","Dinâmica nos dois, para poupar espaço"],e:"Como no caso Jerónimo Martins: o picking (nível inferior) tem localização fixa e o operador sabe onde está tudo; a reserva (níveis superiores) é dinâmica e aproveita o espaço; o abaixamento repõe o picking."}
+  ];
+}
+function sxHTML(){
+  const s=SX, it=s.it, st=s.step, pc=(v,t)=>fmt(v/t*100)+"%";
+  const inp=(l,k)=>{ const v=s.in[l+k]; const right=k==="f"?it.find(x=>x.l===l).f:it.find(x=>x.l===l).m;
+    if(st>1) return `<span class="sxv ${+v===right?'ok':'bad'}">${fmt(right)}${+v===right?'':`<small>tu: ${v===''||v==null?'—':esc(String(v))}</small>`}</span>`;
+    return `<input class="sxin" inputmode="numeric" data-in="${l+k}" value="${v!=null?esc(String(v)):''}" aria-label="${k==='f'?'Faturação':'Volume'} de ${l}">`; };
+  const seg=(l,k)=>{ const right=it.find(x=>x.l===l)["c"+k], cur=s.cl[l+k];
+    return `<span class="sxseg">${["A","B","C"].map(c=>`<button data-cl="${l+k}" data-c="${c}" ${st>2?'disabled':''} class="${cur===c?'on':''} ${st>2&&c===right?'right':''} ${st>2&&cur===c&&c!==right?'wrong':''}">${c}</button>`).join("")}</span>`; };
+  let h=`<div class="sxwrap">
+  <p class="sxstep"><b>1.</b> Calcula a faturação (valor × utilização) e o volume (volume unitário × utilização) de cada produto.</p>
+  <div class="scroll"><table class="sxt"><thead><tr><th>Prod.</th><th>Valor €</th><th>Vol. dm³</th><th>Util.</th><th>Faturação €</th><th>Volume dm³</th></tr></thead><tbody>
+  ${it.map(x=>`<tr><th>${x.l}</th><td>${x.v}</td><td>${x.d}</td><td>${x.u}</td><td>${inp(x.l,"f")}</td><td>${inp(x.l,"m")}</td></tr>`).join("")}
+  ${st>1?`<tr class="tot"><th>Total</th><td></td><td></td><td></td><td>${fmt(s.tf)}</td><td>${fmt(s.tm)}</td></tr>`:''}</tbody></table></div>
+  ${st===1?`<button class="vbtn" id="sx1">Verificar contas</button>`:`<p class="sxres">${s.score.c} de 14 contas certas.</p>`}`;
+  if(st>=2){ const srt=k=>[...it].sort((a,b)=>b[k]-a[k]);
+    h+=`<p class="sxstep"><b>2.</b> Ordena do maior para o menor e classifica: os 2 primeiros são A, os 3 seguintes B e os 2 últimos C (como na aula).</p>
+    <div class="sx2col">${[["f","Faturação (€)","tf"],["m","Volume (dm³)","tm"]].map(([k,lab,tk])=>`<div class="scroll"><table class="sxt"><thead><tr><th>Produto</th><th>${lab}</th><th>Classe</th></tr></thead><tbody>
+    ${(st>2?srt(k):it).map(x=>`<tr><th>${x.l}</th><td>${fmt(x[k])}${st>2?`<small> ${pc(x[k],s[tk])}</small>`:''}</td><td>${seg(x.l,k)}</td></tr>`).join("")}</tbody></table></div>`).join("")}</div>
+    ${st===2?`<button class="vbtn" id="sx2" ${Object.keys(s.cl).length<14?'disabled':''}>Verificar classes</button>`:`<p class="sxres">${s.score.k} de 14 classes certas. Faturação, por ordem: ${srt("f").map(x=>x.l+" "+fmt(x.f)).join(" · ")}. Volume: ${srt("m").map(x=>x.l+" "+fmt(x.m)).join(" · ")}.</p>`}`; }
+  if(st>=3){
+    const cell=(f,m)=>it.filter(x=>x.cf===f&&x.cm===m).map(x=>`<b>${x.l}</b>`).join(" ")||'<span class="faint">—</span>';
+    h+=`<p class="sxstep"><b>3.</b> A matriz cruzada.</p>
+    <div class="scroll"><table class="sxmx"><thead><tr><th>Fat. ↓ · Vol. →</th><th>A</th><th>B</th><th>C</th></tr></thead><tbody>
+    ${["A","B","C"].map(f=>`<tr><th>${f}</th>${["A","B","C"].map(m=>`<td class="c${f}${m}">${cell(f,m)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="sxstep"><b>4.</b> Conclusões operacionais.</p>
+    ${sxQs().map((q,i)=>{ const a=s.ans[i], ord=s.ord[i];
+      return `<div class="sxq"><p>${esc(q.q)}</p><div class="sxopts">${ord.map(k=>`<button data-sq="${i}" data-k="${k}" ${a!=null?'disabled':''} class="${a!=null&&k===0?'right':''} ${a===k&&k!==0?'wrong':''}">${esc(q.o[k])}</button>`).join("")}</div>${a!=null?`<p class="sxe">${a===0?'✓ Certo. ':'✗ '}${esc(q.e)}</p>`:''}</div>`; }).join("")}`;
+    if(Object.keys(s.ans).length===4){ const tot=s.score.c+s.score.k+s.score.q, p=tot/32*100;
+      h+=`<div class="sxend"><b>${tot} de 32</b> (${fmt(p)}%) · contas ${s.score.c}/14 · classes ${s.score.k}/14 · conclusões ${s.score.q}/4<button class="dbtn" id="sxAgain">${I.play}Outro exercício</button></div>`; }
+  }
+  return h+`</div>`;
+}
+function sxRedraw(scrollTo){
+  const box=$("#sxBox"); if(!box) return; box.innerHTML=sxHTML(); saiBindSx();
+  if(scrollTo){ const el=box.querySelector(scrollTo); if(el){ if(!saiReduce()) el.animate([{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],{duration:380,easing:"cubic-bezier(.2,.8,.2,1)"}); el.scrollIntoView({behavior:saiReduce()?"auto":"smooth",block:"nearest"}); } }
+}
+function sxStart(){ SX=sxGen(); SX.ord=[0,1,2,3].map(()=>shuffle([0,1,2,3])); const nb=$("#sxNew"); if(nb) nb.innerHTML=I.play+"Novo exercício"; sxRedraw(".sxwrap"); const f=$(".sxin"); if(f&&matchMedia("(hover:hover)").matches) f.focus({preventScroll:true}); }
+function saiBindSx(){
+  const s=SX; if(!s) return;
+  document.querySelectorAll(".sxin").forEach(i=>i.oninput=()=>{ s.in[i.dataset.in]=i.value.replace(/[^\d]/g,""); if(i.value!==s.in[i.dataset.in]) i.value=s.in[i.dataset.in]; });
+  const b1=$("#sx1"); if(b1) b1.onclick=()=>{ s.score.c=s.it.reduce((a,x)=>a+(+s.in[x.l+"f"]===x.f)+(+s.in[x.l+"m"]===x.m),0); s.step=2; sxRedraw(); const ps=document.querySelectorAll(".sxstep"); ps[1]&&ps[1].scrollIntoView({behavior:saiReduce()?"auto":"smooth",block:"start"}); };
+  document.querySelectorAll("[data-cl]").forEach(b=>b.onclick=()=>{ s.cl[b.dataset.cl]=b.dataset.c; b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); if(!saiReduce()) b.animate([{transform:"scale(.85)"},{transform:"none"}],{duration:200}); const v=$("#sx2"); if(v) v.disabled=Object.keys(s.cl).length<14; });
+  const b2=$("#sx2"); if(b2) b2.onclick=()=>{ s.score.k=s.it.reduce((a,x)=>a+(s.cl[x.l+"f"]===x.cf)+(s.cl[x.l+"m"]===x.cm),0); s.step=3; sxRedraw(); const ps=document.querySelectorAll(".sxstep"); ps[2]&&ps[2].scrollIntoView({behavior:saiReduce()?"auto":"smooth",block:"start"}); };
+  document.querySelectorAll("[data-sq]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.sq; if(s.ans[i]!=null) return; s.ans[i]=+b.dataset.k; if(+b.dataset.k===0) s.score.q++;
+    if(Object.keys(s.ans).length===4){ const p=(s.score.c+s.score.k+s.score.q)/32*100, e=store.saiEx||{n:0,best:0}; store.saiEx={n:e.n+1,best:Math.max(e.best,Math.round(p))}; save(); const cs=document.querySelector("#sxNew + .cstat"); if(cs) cs.textContent=`Feitos: ${store.saiEx.n} · melhor: ${fmt(store.saiEx.best)}%`; }
+    const y=b.getBoundingClientRect().top; sxRedraw(); const nb=document.querySelector(`[data-sq="${i}"][data-k="${b.dataset.k}"]`); if(nb){ window.scrollBy(0,nb.getBoundingClientRect().top-y); const e=nb.closest(".sxq").querySelector(".sxe"); if(e&&!saiReduce()) e.animate([{opacity:0,transform:"translateY(-4px)"},{opacity:1,transform:"none"}],{duration:300}); }
+    const end=$(".sxend"); if(end&&!saiReduce()) end.animate([{opacity:0,transform:"scale(.96)"},{opacity:1,transform:"none"}],{duration:420,easing:"cubic-bezier(.2,.9,.3,1.2)"}); });
+  const ag=$("#sxAgain"); if(ag) ag.onclick=sxStart;
+}
+function saiBind(){ const nb=$("#sxNew"); if(nb) nb.onclick=sxStart; saiBindSx(); }
 // ───────── TROCAR O EMOJI: a primeira vez é grátis, depois custa 300 pontos (descontados nos pontos da classificação)
 const RR_COST=300; let rrBusy=false;
 async function rerollEmoji(btn){
