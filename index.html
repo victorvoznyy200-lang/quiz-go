@@ -2743,8 +2743,8 @@ function saiBindSx(){
   const ag=$("#sxAgain"); if(ag) ag.onclick=sxStart;
 }
 function saiBind(){ const nb=$("#sxNew"); if(nb) nb.onclick=sxStart; saiBindSx(); }
-// ───────── TROCAR O EMOJI: a primeira vez é grátis, depois custa 300 pontos (descontados nos pontos da classificação)
-const RR_COST=300; let rrBusy=false;
+// ───────── TROCAR O EMOJI: a primeira vez é grátis, depois custa RR_COST pontos (descontados nos pontos da classificação)
+const RR_COST=30; let rrBusy=false;
 async function rerollEmoji(btn){
   if(!SB||rrBusy||!cfg.name) return;
   const paid=(store.rr||0)>0, have=Math.max(0,Math.round(store.pts||0));
@@ -2761,26 +2761,27 @@ async function rerollEmoji(btn){
   store.rr=(store.rr||0)+1; cfg.emoji=nw; cfg.emoT=Date.now(); cfg.emoV=2; saveCfg(); save();
   if(av){ av.innerHTML=emoImg(nw); if(!rkReduce()) av.animate([{transform:"scale(.3) rotate(-25deg)"},{transform:"scale(1.3) rotate(8deg)",offset:.6},{transform:"none"}],{duration:620,easing:"cubic-bezier(.2,.9,.3,1.2)"}); }
   renderSide(); sbLastLB=""; try{ await sbPush(); }catch(e){}
-  toast(paid?`Emoji novo! Gastaste ${RR_COST} pontos (tens ${fmt(Math.max(0,Math.round(store.pts)))}).`:"Emoji novo! A próxima troca custa 300 pontos.");
+  toast(paid?`Emoji novo! Gastaste ${RR_COST} pontos (tens ${fmt(Math.max(0,Math.round(store.pts)))}).`:`Emoji novo! A próxima troca custa ${RR_COST} pontos.`);
   rrBusy=false; if(view==="perfil") setTimeout(renderPerfil,900);
 }
-// ───────── PONTOS E MULTIPLICADORES (só no site, onde há classificação)
-// certa +10 (cálculo +15) × multiplicador; errada −5; «Não sei» 0; repetições da mesma ronda não contam; nunca abaixo de 0
-const MULT=c=>c>=10?3:c>=5?2:c>=3?1.5:1;
+// ───────── PONTOS (só no site, onde há classificação) — regra de 20 nov.:
+// certa +1; errada −1; sem multiplicador; nas perguntas que voltam na ronda por as teres errado, acertar dá 0 e errar outra vez tira 1;
+// «Não sei» 0; nunca abaixo de 0. A sequência de certas (🔥) continua a contar para a «melhor sequência», mas já não multiplica.
+const MULT=()=>1;
 const fmtM=m=>"×"+String(m).replace(".",",");
 function ptsAward(q,ok){
-  if(!SB||q.again) return null;
-  const idk=q.pick===-1, before=MULT(store.combo||0);
-  let d, mult=1;
-  if(ok){ store.combo=(store.combo||0)+1; mult=MULT(store.combo); d=Math.round((q.t==="c"?15:10)*mult); }
-  else { store.combo=0; d=idk?0:-5; }
+  if(!SB) return null;
+  const idk=q.pick===-1, had=store.combo||0;
+  let d;
+  if(ok){ store.combo=had+1; d=q.again?0:1; }
+  else { store.combo=0; d=idk?0:-1; }
   if(d<0) d=Math.max(d,-(store.pts||0));
   store.pts=(store.pts||0)+d; store.bestCombo=Math.max(store.bestCombo||0,store.combo||0);
   if(S){ S.pg=(S.pg||0)+d; S.run=Math.max(S.run||0,store.combo||0); }
-  return {d,mult,combo:store.combo||0,broke:!ok&&before>1,levelUp:ok&&mult>before};
+  return {d,mult:1,combo:store.combo||0,broke:!ok&&had>=3,levelUp:false};
 }
 function comboPill(){ if(!SB) return ""; const c=store.combo||0, m=MULT(c);
-  return `<span class="pill combo${m>1?' on':''}${m>=3?' max':''}" id="combo" data-tip="${c} certa${c===1?'':'s'} seguida${c===1?'':'s'}"><span class="fl">🔥</span><b>${m>1?fmtM(m):c}</b></span>`; }
+  return `<span class="pill combo${c>=3?' on':''}${c>=10?' max':''}" id="combo" data-tip="${c} certa${c===1?'':'s'} seguida${c===1?'':'s'}"><span class="fl">🔥</span><b>${c}</b></span>`; }
 function ptsFx(q,a){
   if(!a||rkReduce()) { const cp=$("#combo"); if(cp) cp.outerHTML=comboPill(); return; }
   const k=q.pick>=0?q.pick:q.opts.findIndex(o=>o.ok), b=document.querySelector(`.opt[data-k="${k}"]`);
@@ -2793,17 +2794,16 @@ function ptsFx(q,a){
     const fl=n.querySelector(".fl"); fl&&fl.animate([{transform:"translateY(0) scale(1)"},{transform:"translateY(-6px) scale(1.5)"},{transform:"none"}],{duration:620}); }
   else if(a.d>0) n.animate([{transform:"scale(1)"},{transform:"scale(1.12)"},{transform:"none"}],{duration:300});
 }
-// pontos que já existiam antes deste sistema: +10 por certa, −5 por errada, sem multiplicador (uma vez por aparelho e por parte)
-function ptsConvObj(o){ if(!SB||o.ptsV===1) return o; o=JSON.parse(JSON.stringify(o)); const conv=x=>Math.max(0,(x.ok||0)*10-((x.n||0)-(x.ok||0))*5);
-  let pp=0; for(const d in (o.parts||{})){ if(o.parts[d].pts===undefined) o.parts[d].pts=conv(o.parts[d]); pp+=o.parts[d].pts; }
-  if(o.pts===undefined){ const own={ok:(o.ok||0),n:(o.n||0)}; for(const d in (o.parts||{})){ own.ok-=o.parts[d].ok||0; own.n-=o.parts[d].n||0; } o.pts=conv(own)+pp; }
-  o.ptsV=1; return o; }
+// conversão para a regra nova (20 nov.): pontos = certas − erradas de cada aparelho, nunca abaixo de 0
+const PTS_V=2, ptsNew=x=>Math.max(0,2*(x.ok||0)-(x.n||0));
+function ptsConvObj(o){ if(!SB||o.ptsV===PTS_V) return o; o=JSON.parse(JSON.stringify(o));
+  let pp=0; for(const d in (o.parts||{})){ o.parts[d].pts=ptsNew(o.parts[d]); pp+=o.parts[d].pts; }
+  const own={ok:(o.ok||0),n:(o.n||0)}; for(const d in (o.parts||{})){ own.ok-=o.parts[d].ok||0; own.n-=o.parts[d].n||0; }
+  o.pts=ptsNew(own)+pp; o.ptsV=PTS_V; return o; }
 function ptsConvert(){
-  if(!SB||store.ptsV===1) return;
-  const conv=o=>Math.max(0,(o.ok||0)*10-((o.n||0)-(o.ok||0))*5);
-  for(const d in (store.parts||{})){ const p=store.parts[d]; if(p.pts===undefined) p.pts=conv(p); }
-  if(store.pts===undefined){ let partsPts=0; for(const d in (store.parts||{})) partsPts+=store.parts[d].pts||0; store.pts=conv(ownOf(store))+partsPts; }
-  store.ptsV=1; try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}
+  if(!SB||store.ptsV===PTS_V) return;
+  let pp=0; for(const d in (store.parts||{})){ const p=store.parts[d]; p.pts=ptsNew(p); pp+=p.pts; }
+  store.pts=ptsNew(ownOf(store))+pp; store.ptsV=PTS_V; try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}
 }
 
 // ───────── CONTAS E CLASSIFICAÇÃO (Supabase) — só no site; no artifact SB fica desligado
@@ -2872,6 +2872,8 @@ async function sbLoadBoard(force){
   if(sbBoard&&!force&&Date.now()-sbBoardT<20000) return sbBoard;
   const {data,error}=await SB.from("leaderboard").select("*").order("points",{ascending:false}).limit(500);
   if(error) throw error; const ov=await sbOverrides();
+  const T2=Date.parse("2026-11-20T21:04:00Z");
+  (data||[]).forEach(r=>{ if(Date.parse(r.updated_at||0)<T2&&r.correct>0) r.points=Math.max(0,2*r.correct-(r.answered||0)); });
   (data||[]).forEach(r=>{ const o=ov[r.user_id]; if(o&&o.emoji&&+o.t>Date.parse(r.updated_at||0)) r.emoji=o.emoji; });
   sbBoard=data||[]; sbBoardT=Date.now(); return sbBoard;
 }
@@ -2988,7 +2990,7 @@ const rkReduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 // a página da classificação é desenhada uma vez; trocar de aba ou atualizar só mexe na lista (as linhas deslizam para a nova posição)
 async function renderRank(){
   tipHide();
-  $("#main").innerHTML=`<div class="top appear"><div><h1>Classificação</h1><p>Certa +10 (cálculo +15), errada −5. Certas seguidas multiplicam: 3 ×1,5 · 5 ×2 · 10 ×3.</p></div>
+  $("#main").innerHTML=`<div class="top appear"><div><h1>Classificação</h1><p>Certa +1, errada −1. Nas perguntas que voltam na ronda por as teres errado, acertar não conta e errar outra vez tira 1.</p></div>
     <div class="topr"><button class="gbtn" id="rkR">${I.refresh}<span>Atualizar</span></button></div></div>
     ${sbUser?'':`<section class="card appear rkcta"><div><b>Ainda não estás na classificação.</b><p class="sub" style="margin:4px 0 0">Cria uma conta e o progresso deste aparelho entra logo.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="vbtn" id="rkUp">Criar conta</button><button class="gbtn" id="rkIn">Entrar</button></div></section>`}
     <div class="rktabs appear" role="tablist"><span class="rkind" id="rkInd"></span>${RK_TABS.map(([k,l])=>`<button role="tab" aria-selected="${rankTab===k}" data-rk="${k}">${l}</button>`).join("")}</div>
@@ -3086,7 +3088,7 @@ function renderPerfil(){
   $("#main").innerHTML=`
   <div class="top appear"><div class="phead"><div class="avatar big emo" id="pav">${cfg.emoji?emoImg(cfg.emoji):esc((cfg.name||"?").charAt(0).toUpperCase())}</div>
     <div><h1>${uname()}</h1><p>Gestão de Operações · teste a 24 de novembro</p></div></div>
-    <div class="topr">${SB?`<button class="gbtn" id="proll">🎲 Trocar emoji <span class="rrcost">${(store.rr||0)>0?"300 pontos":"grátis"}</span></button>`:""}<button class="gbtn" id="pedit">Mudar o nome</button></div></div>
+    <div class="topr">${SB?`<button class="gbtn" id="proll">🎲 Trocar emoji <span class="rrcost">${(store.rr||0)>0?RR_COST+" pontos":"grátis"}</span></button>`:""}<button class="gbtn" id="pedit">Mudar o nome</button></div></div>
   <section class="card appear"><div class="pstats">
     <div class="pstat"><b>${fmt(store.n)}</b><span>respostas no total</span></div>
     <div class="pstat"><b>${store.n?fmt(store.ok/store.n*100)+'%':'—'}</b><span>certas no total</span></div>
