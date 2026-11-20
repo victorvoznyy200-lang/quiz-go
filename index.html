@@ -573,6 +573,11 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .umsg{color:var(--muted);font-size:.9rem;margin:0}
 .utab .ud{display:none}
 @media (max-width:640px){.ucard{padding:18px 14px}.uhead h2{font-size:1.2rem}.uav{width:46px;height:46px}.uav img{width:42px;height:42px}.ustats{grid-template-columns:repeat(3,1fr);gap:6px;margin-top:14px}.ust{padding:8px 9px}.ust b{font-size:1rem}.ust span{font-size:.68rem}.utab .udt{display:none}.utab .uwh{white-space:normal}.utab .ud{display:block;color:var(--muted);font-size:.72rem}.utab td{padding:8px 6px}}
+.admbtn{width:100%;margin:4px 0 2px;justify-content:center}
+.admlist{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:4px}
+.admlist button{width:100%;display:flex;align-items:center;gap:10px;font:inherit;font-weight:600;text-align:left;padding:6px 10px;border:0;border-radius:12px;background:none;color:var(--ink);cursor:pointer}
+@media (hover:hover){.admlist button:hover{background:var(--th)}}
+.admcard h2{margin:0 0 6px}
 .appear{animation:up .7s both cubic-bezier(.2,.8,.2,1)}
 @keyframes up{from{opacity:.001;transform:translateY(14px)}to{opacity:1;transform:none}}
 
@@ -2443,14 +2448,16 @@ function askName(edit){
   const x=d.querySelector("#nameX"); if(x) x.onclick=close;
 }
 // ───────── cheat: escolher o emoji (escondido)
-function emojiCheat(){
+// seletor de emoji reutilizável (cheat do próprio e área secreta de admin)
+function emojiPicker(o){
   if(document.getElementById("namebox")) return;
   const d=document.createElement("div"); d.id="namebox"; d.className="nameov";
-  let pick=cfg.emoji, tab=EMO.an.includes(pick)?"an":"sm";
+  let pick=o.current||"😀", tab=EMO.an.includes(pick)?"an":"sm";
   d.innerHTML=`<div class="namecard"><div class="avatar big emo" id="nav0">${emoImg(pick)}</div>
-    <h2><span class="eti" style="display:inline-block;width:1em;vertical-align:-4px;margin-right:8px">${emoImg("🤫")}</span>Modo secreto</h2><p>Encontraste o cheat. Escolhe o emoji que quiseres e não contes a ninguém.</p>
+    <h2><span class="eti" style="display:inline-block;width:1em;vertical-align:-4px;margin-right:8px">${emoImg("🤫")}</span>${esc(o.title)}</h2><p>${o.text}</p>
     <div class="emopick"><div class="emotabs"><button type="button" data-et="sm" aria-pressed="${tab==="sm"}"><span class="eti">${emoImg("😀")}</span>Smileys e pessoas</button><button type="button" data-et="an" aria-pressed="${tab==="an"}"><span class="eti">${emoImg("🐶")}</span>Animais e natureza</button></div><div class="emogrid" id="emogrid"></div></div>
-    <div class="namebtns"><button type="button" class="gbtn" id="nameX">Cancelar</button><button type="button" class="vbtn" id="nameOk">Guardar</button></div></div>`;
+    ${o.extra||""}
+    <div class="namebtns"><button type="button" class="gbtn" id="nameX">${o.back?"Voltar":"Cancelar"}</button><button type="button" class="vbtn" id="nameOk">Guardar</button></div></div>`;
   document.body.appendChild(d);
   const grid=d.querySelector("#emogrid"), av=d.querySelector("#nav0");
   const draw=()=>{ grid.innerHTML=EMO[tab].map(e=>`<button type="button" data-e="${e}" aria-pressed="${e===pick}" aria-label="${e}">${emoImg(e)}</button>`).join("");
@@ -2460,8 +2467,38 @@ function emojiCheat(){
   grid.onclick=e=>{ const b=e.target.closest("button"); if(!b) return; pick=b.dataset.e; grid.querySelectorAll('[aria-pressed="true"]').forEach(x=>x.setAttribute("aria-pressed","false")); b.setAttribute("aria-pressed","true");
     av.innerHTML=emoImg(pick); av.animate([{transform:"scale(.6) rotate(-12deg)"},{transform:"scale(1.15) rotate(6deg)"},{transform:"scale(1)"}],{duration:380,easing:"cubic-bezier(.2,.9,.3,1.2)"}); };
   const close=()=>{d.classList.add("out"); setTimeout(()=>d.remove(),280);};
-  d.querySelector("#nameX").onclick=close;
-  d.querySelector("#nameOk").onclick=()=>{ cfg.emoji=pick; cfg.emoV=2; saveCfg(); close(); renderSide(); if(view==="perfil") renderPerfil(); toast("Emoji trocado. Fica entre nós."); };
+  d.querySelector("#nameX").onclick=()=>{ d.remove(); if(o.back) o.back(); else close(); };
+  d.querySelector("#nameOk").onclick=async()=>{ const ok=d.querySelector("#nameOk"); ok.disabled=true; ok.textContent="A guardar…"; const r=await o.onSave(pick); if(r===false){ ok.disabled=false; ok.textContent="Guardar"; return; } close(); };
+  if(o.bind) o.bind(d);
+}
+function emojiCheat(){
+  emojiPicker({title:"Modo secreto",current:cfg.emoji,text:"Encontraste o cheat. Escolhe o emoji que quiseres e não contes a ninguém.",
+    extra:sbAdmin?`<button type="button" class="gbtn admbtn" id="admGo">👑 Trocar o emoji de outra pessoa</button>`:"",
+    bind:d=>{ const g=d.querySelector("#admGo"); if(g) g.onclick=()=>{ d.remove(); adminArea(); }; },
+    onSave:async pick=>{ cfg.emoji=pick; cfg.emoV=2; cfg.emoT=Date.now(); saveCfg(); renderSide(); if(view==="perfil") renderPerfil();
+      // guarda na conta e na classificação, senão a próxima sincronização repunha o emoji antigo
+      if(SB&&sbUser){ sbLastLB=""; try{ await sbPush(); }catch(e){} sbBoard=null; if(view==="rank") renderRank(); }
+      toast("Emoji trocado. Fica entre nós."); }});
+}
+// ───────── ÁREA SECRETA (só para quem está na tabela admins do Supabase): trocar o emoji de qualquer pessoa
+let sbAdmin=false;
+async function sbCheckAdmin(){ sbAdmin=false; if(!SB||!sbUser) return; try{ const {data,error}=await SB.from("admins").select("user_id").eq("user_id",sbUser.id).maybeSingle(); sbAdmin=!error&&!!data; }catch(e){} }
+async function sbOverrides(){ if(!SB) return {}; try{ const {data,error}=await SB.from("emoji_override").select("*"); if(error||!data) return {}; return Object.fromEntries(data.map(r=>[r.user_id,r])); }catch(e){ return {}; } }
+async function adminArea(){
+  if(!sbAdmin||document.getElementById("namebox")) return;
+  let board; try{ board=await sbLoadBoard(true); }catch(e){ toast("Não foi possível carregar a classificação."); return; }
+  const list=[...board].sort((a,b)=>(a.name||"").localeCompare(b.name||"","pt"));
+  const [d,close]=smallModal(`<div class="namecard ucard admcard"><button class="ux" id="aX" aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <h2>👑 Área secreta</h2><p class="umsg">Toca numa pessoa para lhe trocar o emoji. A troca aparece na classificação logo e no aparelho dela quando voltar a abrir o site.</p>
+    <ul class="admlist">${list.map(r=>`<li><button type="button" data-adm="${esc(r.user_id)}"><span class="rkav">${r.emoji?emoImg(r.emoji):esc((r.name||"?").charAt(0).toUpperCase())}</span><span>${esc(r.name||"Sem nome")}${sbUser&&r.user_id===sbUser.id?' <span class="tag">tu</span>':''}</span></button></li>`).join("")}</ul></div>`);
+  d.querySelector("#aX").onclick=close; d.onclick=e=>{ if(e.target===d) close(); };
+  d.querySelectorAll("[data-adm]").forEach(b=>b.onclick=()=>{ const r=list.find(x=>x.user_id===b.dataset.adm); d.remove();
+    if(sbUser&&r.user_id===sbUser.id) return emojiCheat();
+    emojiPicker({title:"Emoji de "+(r.name||"Sem nome"),current:r.emoji,text:"Escolhe o emoji novo para esta pessoa.",back:adminArea,
+      onSave:async pick=>{ const {error}=await SB.from("emoji_override").upsert({user_id:r.user_id,emoji:pick,t:Date.now()});
+        if(error){ toast(/admins|emoji_override|permission|policy|row-level/i.test(error.message||"")?"Sem permissão: falta o SQL da área secreta no Supabase.":"Não deu: "+error.message); return false; }
+        r.emoji=pick; if(sbBoard){ const x=sbBoard.find(y=>y.user_id===r.user_id); if(x) x.emoji=pick; } if(view==="rank") rkDraw(false);
+        toast(`Emoji de ${r.name||"Sem nome"} trocado.`); setTimeout(adminArea,320); }}); });
 }
 const CALC=[
  {id:"takt",p:"ALTA",t:"Takt, gargalo e capacidade",src:"W5 · caso prático (~6 val.)",why:"Resolvido na aula (W5 p41) e repetido no contexto da oficina. Parte-se naturalmente em várias alíneas, que é a forma de um caso prático.",
@@ -2786,9 +2823,9 @@ async function sbInit(){
   if(!SB) return;
   ptsConvert();
   const {data}=await SB.auth.getSession(); sbUser=data.session?data.session.user:null;
-  SB.auth.onAuthStateChange((ev,ses)=>{ if(ev==="PASSWORD_RECOVERY") setTimeout(()=>askNewPass(true),300); const was=sbUser&&sbUser.id; sbUser=ses?ses.user:null; if((sbUser&&sbUser.id)!==was){ if(sbUser) sbPull(); renderSide(); if(view==="perfil") renderPerfil(); if(view==="rank") renderRank(); } });
+  SB.auth.onAuthStateChange((ev,ses)=>{ if(ev==="PASSWORD_RECOVERY") setTimeout(()=>askNewPass(true),300); const was=sbUser&&sbUser.id; sbUser=ses?ses.user:null; if((sbUser&&sbUser.id)!==was){ if(sbUser){ sbPull(); sbCheckAdmin(); } else sbAdmin=false; renderSide(); if(view==="perfil") renderPerfil(); if(view==="rank") renderRank(); } });
   const recov=/type=recovery/.test(location.hash);
-  if(sbUser) sbPull(); else if(!cfg.name&&!recov) welcome();
+  if(sbUser){ sbPull(); sbCheckAdmin(); } else if(!cfg.name&&!recov) welcome();
   document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&sbUser) sbPull(); });
   renderSide(); if(view==="perfil") renderPerfil();
 }
@@ -2803,6 +2840,8 @@ async function sbPull(){
       if(o.c){ let ch=false; if(o.c.emoji&&o.c.emoji!==cfg.emoji&&(o.c.emoT||0)>=(cfg.emoT||0)){cfg.emoji=o.c.emoji;cfg.emoT=o.c.emoT||0;cfg.emoV=2;ch=true;} if(o.c.name&&!cfg.name){cfg.name=o.c.name;ch=true;} if(ch){saveCfg(); renderSide();} }
       if(view==="painel") renderPainel(); else if(view==="perfil") renderPerfil();
     }
+    // emoji trocado por um admin na área secreta: ganha se for mais recente que a última troca deste aparelho
+    try{ const {data:ov}=await SB.from("emoji_override").select("*").eq("user_id",sbUser.id).maybeSingle(); if(ov&&ov.emoji&&+ov.t>(cfg.emoT||0)){ cfg.emoji=ov.emoji; cfg.emoT=+ov.t; cfg.emoV=2; saveCfg(); renderSide(); if(view==="perfil") renderPerfil(); } }catch(e){}
     await sbPush(true);
   }catch(e){ console.warn("sbPull",e); }
   sbPulling=false;
@@ -2832,7 +2871,9 @@ async function sbLoadBoard(force){
   if(!SB) return null;
   if(sbBoard&&!force&&Date.now()-sbBoardT<20000) return sbBoard;
   const {data,error}=await SB.from("leaderboard").select("*").order("points",{ascending:false}).limit(500);
-  if(error) throw error; sbBoard=data||[]; sbBoardT=Date.now(); return sbBoard;
+  if(error) throw error; const ov=await sbOverrides();
+  (data||[]).forEach(r=>{ const o=ov[r.user_id]; if(o&&o.emoji&&+o.t>Date.parse(r.updated_at||0)) r.emoji=o.emoji; });
+  sbBoard=data||[]; sbBoardT=Date.now(); return sbBoard;
 }
 function askAuth(mode,fromWelcome){
   if(!SB||document.getElementById("namebox")) return;
