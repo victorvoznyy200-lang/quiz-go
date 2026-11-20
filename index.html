@@ -2846,6 +2846,11 @@ async function sbPull(){
   }catch(e){ console.warn("sbPull",e); }
   sbPulling=false;
 }
+// versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
+const BUILD="1795209800";
+async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD&&!(view==="q"&&S&&!S.done)&&!document.getElementById("namebox")) location.reload(); }catch(e){} }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
+setInterval(checkUpdate,10*60*1000);
 function sbQueue(){ if(!SB||!sbUser) return; clearTimeout(sbPushT); sbPushT=setTimeout(()=>sbPush(),3000); }
 async function sbPush(){
   if(!SB||!sbUser) return; clearTimeout(sbPushT);
@@ -2873,7 +2878,8 @@ async function sbLoadBoard(force){
   const {data,error}=await SB.from("leaderboard").select("*").order("points",{ascending:false}).limit(500);
   if(error) throw error; const ov=await sbOverrides();
   const T2=Date.parse("2026-11-20T21:04:00Z");
-  (data||[]).forEach(r=>{ if(Date.parse(r.updated_at||0)<T2&&r.correct>0) r.points=Math.max(0,2*r.correct-(r.answered||0)); });
+  // linhas ainda na escala antiga (antes da mudança, ou enviadas por um separador aberto com a versão antiga): na escala nova os pontos nunca passam das certas
+  (data||[]).forEach(r=>{ if(r.correct>0&&(Date.parse(r.updated_at||0)<T2||r.points>r.correct)) r.points=Math.max(0,2*r.correct-(r.answered||0)); });
   (data||[]).forEach(r=>{ const o=ov[r.user_id]; if(o&&o.emoji&&+o.t>Date.parse(r.updated_at||0)) r.emoji=o.emoji; });
   sbBoard=data||[]; sbBoardT=Date.now(); return sbBoard;
 }
@@ -3409,8 +3415,10 @@ function instantiate(src){
 // {1},{2},{3} na explicação = letra (ou texto, na revisão final) com que aparece a opção errada n.º 1, 2, 3
 function qe(q,txt){ return esc(q.e).replace(/\{([1-3])\}/g,(m,i)=>{ const j=q.opts.findIndex(o=>o.k===+i); if(j<0) return m; return txt?'«'+esc(q.opts[j].txt)+'»':'<b>'+LET[j]+'</b>'; }); }
 function cloneQ(q){ return {...q, opts:shuffle(q.opts.map(o=>({...o}))), pick:null, again:true}; }
-function buildSet(n){
-  const st=shuffle(poolStatic()), gk=poolGen();
+// no teste de 30 min não entram as práticas (A–E) nem perguntas sobre o caso Yamaha (pedido da Guna, 20 nov.)
+const testOk=q=>q.w!=="PR"&&!/yamaha|briefing|desafio|entrega formal/i.test(q.q+" "+q.o.join(" "));
+function buildSet(n,test){
+  const st=shuffle(poolStatic().filter(q=>!test||testOk(q))), gk=poolGen().filter(k=>!test||GEN_WEEK[k]!=="PR");
   if(n==="all"){ const items=st.slice(); gk.forEach(k=>items.push({gen:k})); return shuffle(items).map(instantiate); }
   const due=new Set(dueIds());
   const dueIn=st.filter(q=>due.has(q.id)).slice(0,Math.round(n*0.3));
@@ -3421,7 +3429,7 @@ function buildSet(n){
   return shuffle(items).map(instantiate);
 }
 function startQuiz(mode, list, ctx){
-  const qs = list ? list : mode==="revisao" ? shuffle(STATIC.filter(q=>new Set(dueIds()).has(q.id))).map(instantiate) : buildSet(mode==="teste"?30:cfg.n);
+  const qs = list ? list : mode==="revisao" ? shuffle(STATIC.filter(q=>new Set(dueIds()).has(q.id))).map(instantiate) : buildSet(mode==="teste"?30:cfg.n,mode==="teste");
   if(!qs.length) return;
   clearInterval(timer);
   S={mode, ctx:ctx||null, qs, i:0, ok:0, bad:0, end:mode==="teste"?Date.now()+30*60*1000:null, done:false, goalHit:(store.days[dayKey(new Date())]||{n:0}).n>=cfg.goal};
