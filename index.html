@@ -423,6 +423,19 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .aimp{margin-top:14px;border:1px solid var(--gb);border-radius:14px;padding:10px 12px}
 .aimp summary{cursor:pointer;font-weight:600;font-size:.9rem}
 .aimp p{margin:8px 0}.aimp textarea{width:100%;box-sizing:border-box;border:1px solid var(--gb);border-radius:12px;padding:10px;font:inherit;font-size:.85rem;background:var(--th);color:var(--ink);resize:vertical;word-break:break-all}
+.pill.combo{display:inline-flex;align-items:center;gap:4px;color:var(--muted);transition:background .3s,color .3s,box-shadow .3s}
+.pill.combo .fl{filter:grayscale(1);opacity:.5;transition:filter .3s,opacity .3s}
+.pill.combo.on{color:#C2410C;background:rgba(251,146,60,.16);border-color:rgba(251,146,60,.45)}
+.pill.combo.on .fl{filter:none;opacity:1}
+.pill.combo.max{color:#B91C1C;background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.5);box-shadow:0 0 18px rgba(249,115,22,.45)}
+:root[data-mode="dark"] .pill.combo.on{color:#FDBA74}:root[data-mode="dark"] .pill.combo.max{color:#FCA5A5}
+.opt{position:relative}
+.ptsfly{position:absolute;right:12px;top:-14px;z-index:3;font-weight:800;font-size:.95rem;pointer-events:none;font-variant-numeric:tabular-nums;white-space:nowrap;padding:3px 10px;border-radius:999px;background:var(--base);border:1px solid var(--gb);box-shadow:0 6px 16px -6px rgba(0,0,0,.25)}
+.ptsfly.up{color:var(--ok)}.ptsfly.down{color:var(--bad)}
+.ptsum{display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:8px;font-weight:700;font-size:.92rem}
+.ptsum span{padding:5px 11px;border-radius:999px;background:var(--g1);border:1px solid var(--gb)}
+.ptsum .up{color:var(--ok)}.ptsum .down{color:var(--bad)}
+.aforgot{display:block;margin:6px 2px 0;font-size:.85rem}
 .phead{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .phead .avatar.big{width:84px;height:84px;border-radius:24px;margin:0;font-size:3.1rem}
 .phead h1{margin:0}.phead p{margin:4px 0 0;color:var(--muted)}
@@ -2296,13 +2309,14 @@ async function readCode(t){
 }
 function flashMsg(el,txt,good){el.textContent=txt;el.className="xmsg show "+(good?"good":"badm");}
 // ───────── juntar progresso de dois aparelhos (sem contar duas vezes)
-const CNT=()=>({ok:0,n:0,byW:{},days:{},calc:{ok:0,n:0}});
-function cntOf(o){ return {ok:o.ok||0,n:o.n||0,byW:JSON.parse(JSON.stringify(o.byW||{})),days:JSON.parse(JSON.stringify(o.days||{})),calc:{ok:(o.calc||{}).ok||0,n:(o.calc||{}).n||0}}; }
-function cntAdd(a,b,sg){ a.ok+=sg*b.ok; a.n+=sg*b.n; a.calc.ok+=sg*b.calc.ok; a.calc.n+=sg*b.calc.n;
+const CNT=()=>({ok:0,n:0,pts:0,byW:{},days:{},calc:{ok:0,n:0}});
+function cntOf(o){ return {ok:o.ok||0,n:o.n||0,pts:o.pts||0,byW:JSON.parse(JSON.stringify(o.byW||{})),days:JSON.parse(JSON.stringify(o.days||{})),calc:{ok:(o.calc||{}).ok||0,n:(o.calc||{}).n||0}}; }
+function cntAdd(a,b,sg){ a.ok+=sg*b.ok; a.n+=sg*b.n; a.pts=(a.pts||0)+sg*(b.pts||0); a.calc.ok+=sg*b.calc.ok; a.calc.n+=sg*b.calc.n;
   for(const m of ["byW","days"]) for(const k in b[m]){ const x=a[m][k]||(a[m][k]={ok:0,n:0}); x.ok+=sg*b[m][k].ok; x.n+=sg*b[m][k].n; if(x.n<=0&&x.ok<=0) delete a[m][k]; }
   return a; }
 function ownOf(o){ const c=cntOf(o); for(const d in (o.parts||{})) cntAdd(c,o.parts[d],-1); return c; }
 function mergeStore(inc){
+  if(typeof ptsConvObj==="function") inc=ptsConvObj(inc);
   const myOwn=ownOf(store), parts=Object.assign({},store.parts||{});
   const incDev=inc.dev||("old-"+(inc.n||0)+"-"+(inc.ok||0));
   const add=(d,c)=>{ if(d===store.dev) return; if(!parts[d]||parts[d].n<=c.n) parts[d]=c; };
@@ -2316,7 +2330,7 @@ function mergeStore(inc){
   const seen=new Set(), hist=[...(store.hist||[]),...(inc.hist||[])].filter(h=>{const k=h.d+"|"+h.ok+"|"+h.n; if(seen.has(k)) return false; seen.add(k); return true;});
   const hk=h=>{const m=(h.d||"").match(/(\d+)\/(\d+) (\d+):(\d+)/); return m?(+m[2])*1e6+(+m[1])*1e4+(+m[3])*100+(+m[4]):0;};
   hist.sort((a,b)=>hk(a)-hk(b));
-  Object.assign(store,{ok:tot.ok,n:tot.n,byW:tot.byW,days:tot.days,calc:tot.calc,parts,srs,last,wrong,study,hist:hist.slice(-30)});
+  Object.assign(store,{ok:tot.ok,n:tot.n,pts:tot.pts,bestCombo:Math.max(store.bestCombo||0,inc.bestCombo||0),byW:tot.byW,days:tot.days,calc:tot.calc,parts,srs,last,wrong,study,hist:hist.slice(-30)});
   save();
 }
 function bindXfer(){
@@ -2471,6 +2485,48 @@ function renderCalc(){
   $("#callall").onclick=()=>startCalc("all");
   document.querySelectorAll("[data-calc]").forEach(b=>b.onclick=()=>startCalc(b.dataset.calc));
 }
+// ───────── PONTOS E MULTIPLICADORES (só no site, onde há classificação)
+// certa +10 (cálculo +15) × multiplicador; errada −5; «Não sei» 0; repetições da mesma ronda não contam; nunca abaixo de 0
+const MULT=c=>c>=10?3:c>=5?2:c>=3?1.5:1;
+const fmtM=m=>"×"+String(m).replace(".",",");
+function ptsAward(q,ok){
+  if(!SB||q.again) return null;
+  const idk=q.pick===-1, before=MULT(store.combo||0);
+  let d, mult=1;
+  if(ok){ store.combo=(store.combo||0)+1; mult=MULT(store.combo); d=Math.round((q.t==="c"?15:10)*mult); }
+  else { store.combo=0; d=idk?0:-5; }
+  if(d<0) d=Math.max(d,-(store.pts||0));
+  store.pts=(store.pts||0)+d; store.bestCombo=Math.max(store.bestCombo||0,store.combo||0);
+  if(S){ S.pg=(S.pg||0)+d; S.run=Math.max(S.run||0,store.combo||0); }
+  return {d,mult,combo:store.combo||0,broke:!ok&&before>1,levelUp:ok&&mult>before};
+}
+function comboPill(){ if(!SB) return ""; const c=store.combo||0, m=MULT(c);
+  return `<span class="pill combo${m>1?' on':''}${m>=3?' max':''}" id="combo" data-tip="${c} certa${c===1?'':'s'} seguida${c===1?'':'s'}"><span class="fl">🔥</span><b>${m>1?fmtM(m):c}</b></span>`; }
+function ptsFx(q,a){
+  if(!a||rkReduce()) { const cp=$("#combo"); if(cp) cp.outerHTML=comboPill(); return; }
+  const k=q.pick>=0?q.pick:q.opts.findIndex(o=>o.ok), b=document.querySelector(`.opt[data-k="${k}"]`);
+  if(b&&a.d!==0){ const f=document.createElement("span"); f.className="ptsfly "+(a.d>0?"up":"down"); f.textContent=(a.d>0?"+":"−")+Math.abs(a.d)+(a.d>0&&a.mult>1?" "+fmtM(a.mult):"");
+    b.appendChild(f); f.animate([{opacity:0,transform:"translateY(6px) scale(.8)"},{opacity:1,transform:"translateY(-10px) scale(1.08)",offset:.25},{opacity:1,transform:"translateY(-18px) scale(1)",offset:.7},{opacity:0,transform:"translateY(-30px)"}],{duration:1300,easing:"cubic-bezier(.2,.8,.2,1)"}).onfinish=()=>f.remove(); }
+  const old=$("#combo"); if(!old) return;
+  if(a.broke){ old.animate([{transform:"scale(1)",filter:"none",opacity:1},{transform:"scale(1.15)",offset:.2},{transform:"scale(.6) translateY(4px)",filter:"grayscale(1)",opacity:.3}],{duration:450,easing:"ease-in"}).onfinish=()=>{ old.outerHTML=comboPill(); const n=$("#combo"); n&&n.animate([{opacity:0,transform:"scale(.7)"},{opacity:1,transform:"none"}],{duration:260}); }; return; }
+  old.outerHTML=comboPill(); const n=$("#combo"); if(!n) return;
+  if(a.levelUp){ n.animate([{transform:"scale(1)"},{transform:"scale(1.45) rotate(-6deg)",offset:.35},{transform:"scale(.95) rotate(3deg)",offset:.7},{transform:"none"}],{duration:620,easing:"cubic-bezier(.3,1.6,.5,1)"});
+    const fl=n.querySelector(".fl"); fl&&fl.animate([{transform:"translateY(0) scale(1)"},{transform:"translateY(-6px) scale(1.5)"},{transform:"none"}],{duration:620}); }
+  else if(a.d>0) n.animate([{transform:"scale(1)"},{transform:"scale(1.12)"},{transform:"none"}],{duration:300});
+}
+// pontos que já existiam antes deste sistema: +10 por certa, −5 por errada, sem multiplicador (uma vez por aparelho e por parte)
+function ptsConvObj(o){ if(!SB||o.ptsV===1) return o; o=JSON.parse(JSON.stringify(o)); const conv=x=>Math.max(0,(x.ok||0)*10-((x.n||0)-(x.ok||0))*5);
+  let pp=0; for(const d in (o.parts||{})){ if(o.parts[d].pts===undefined) o.parts[d].pts=conv(o.parts[d]); pp+=o.parts[d].pts; }
+  if(o.pts===undefined){ const own={ok:(o.ok||0),n:(o.n||0)}; for(const d in (o.parts||{})){ own.ok-=o.parts[d].ok||0; own.n-=o.parts[d].n||0; } o.pts=conv(own)+pp; }
+  o.ptsV=1; return o; }
+function ptsConvert(){
+  if(!SB||store.ptsV===1) return;
+  const conv=o=>Math.max(0,(o.ok||0)*10-((o.n||0)-(o.ok||0))*5);
+  for(const d in (store.parts||{})){ const p=store.parts[d]; if(p.pts===undefined) p.pts=conv(p); }
+  if(store.pts===undefined){ let partsPts=0; for(const d in (store.parts||{})) partsPts+=store.parts[d].pts||0; store.pts=conv(ownOf(store))+partsPts; }
+  store.ptsV=1; try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}
+}
+
 // ───────── CONTAS E CLASSIFICAÇÃO (Supabase) — só no site; no artifact SB fica desligado
 const SB_URL="https://rrobxngzsxtqadysofxx.supabase.co", SB_KEY="sb_publishable_sW0SH5zdnBINH-m0MBwGzw_kl5gk6Zf";
 const SB=(SB_URL.startsWith("https://")&&typeof window.supabase!=="undefined")?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
@@ -2486,9 +2542,11 @@ const SB_ERR=m=>{ m=String(m||"");
   return "Não deu: "+m; };
 async function sbInit(){
   if(!SB) return;
+  ptsConvert();
   const {data}=await SB.auth.getSession(); sbUser=data.session?data.session.user:null;
-  SB.auth.onAuthStateChange((ev,ses)=>{ const was=sbUser&&sbUser.id; sbUser=ses?ses.user:null; if((sbUser&&sbUser.id)!==was){ if(sbUser) sbPull(); renderSide(); if(view==="perfil") renderPerfil(); if(view==="rank") renderRank(); } });
-  if(sbUser) sbPull(); else if(!cfg.name) welcome();
+  SB.auth.onAuthStateChange((ev,ses)=>{ if(ev==="PASSWORD_RECOVERY") setTimeout(()=>askNewPass(true),300); const was=sbUser&&sbUser.id; sbUser=ses?ses.user:null; if((sbUser&&sbUser.id)!==was){ if(sbUser) sbPull(); renderSide(); if(view==="perfil") renderPerfil(); if(view==="rank") renderRank(); } });
+  const recov=/type=recovery/.test(location.hash);
+  if(sbUser) sbPull(); else if(!cfg.name&&!recov) welcome();
   document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&sbUser) sbPull(); });
   renderSide(); if(view==="perfil") renderPerfil();
 }
@@ -2515,19 +2573,21 @@ async function sbPush(){
   await sbLB();
 }
 function myRow(){ const h=store.hist||[]; const best=h.length?Math.max(...h.map(t=>t.nota)):null;
-  return {user_id:sbUser.id,name:(cfg.name||"Sem nome").slice(0,30),emoji:cfg.emoji||null,points:store.ok||0,answered:store.n||0,tests:h.length,best_grade:best===null?null:Math.round(best*10)/10,streak:streak()}; }
+  return {user_id:sbUser.id,name:(cfg.name||"Sem nome").slice(0,30),emoji:cfg.emoji||null,points:Math.max(0,Math.round(store.pts||0)),correct:store.ok||0,best_combo:store.bestCombo||0,answered:store.n||0,tests:h.length,best_grade:best===null?null:Math.round(best*10)/10,streak:streak()}; }
 async function sbLB(){
   if(!SB||!sbUser) return;
   try{
     if(cfg.board===false){ if(sbLastLB!=="off"){ await SB.from("leaderboard").delete().eq("user_id",sbUser.id); sbLastLB="off"; sbBoard=null; } return; }
     const r=myRow(), k=JSON.stringify(r); if(k===sbLastLB) return;
-    const {error}=await SB.from("leaderboard").upsert({...r,updated_at:new Date().toISOString()}); if(!error){ sbLastLB=k; sbBoard=null; }
+    let {error}=await SB.from("leaderboard").upsert({...r,updated_at:new Date().toISOString()});
+    if(error&&/correct|best_combo/.test(error.message||"")){ const {correct,best_combo,...old}=r; ({error}=await SB.from("leaderboard").upsert({...old,updated_at:new Date().toISOString()})); }
+    if(!error){ sbLastLB=k; sbBoard=null; }
   }catch(e){ console.warn("sbLB",e); }
 }
 async function sbLoadBoard(force){
   if(!SB) return null;
   if(sbBoard&&!force&&Date.now()-sbBoardT<20000) return sbBoard;
-  const {data,error}=await SB.from("leaderboard").select("user_id,name,emoji,points,answered,tests,best_grade,streak,updated_at").order("points",{ascending:false}).limit(500);
+  const {data,error}=await SB.from("leaderboard").select("*").order("points",{ascending:false}).limit(500);
   if(error) throw error; sbBoard=data||[]; sbBoardT=Date.now(); return sbBoard;
 }
 function askAuth(mode,fromWelcome){
@@ -2541,6 +2601,7 @@ function askAuth(mode,fromWelcome){
     ${m==="up"?`<label class="afl" for="aName">Nome na classificação</label><input id="aName" maxlength="30" value="${esc(cfg.name||"")}" placeholder="O teu nome" autocomplete="nickname">`:''}
     <label class="afl" for="aMail">Email</label><input id="aMail" type="email" inputmode="email" autocomplete="email" placeholder="nome@exemplo.com" autocapitalize="off">
     <label class="afl" for="aPass">Password</label><input id="aPass" type="password" autocomplete="${m==="in"?"current-password":"new-password"}" placeholder="${m==="in"?"A tua password":"Pelo menos 6 caracteres"}">
+    ${m==="in"?'<button type="button" class="linkbtn aforgot" id="aForgot">Esqueci-me da password</button>':''}
     <details class="aimp"${impOpen?' open':''}><summary>Importar progresso do Claude (opcional)</summary>
       <p class="sub">No quiz do Claude, vai a «O meu progresso», depois «Passar o progresso» e «Copiar código». Cola aqui o código (começa por GO2-).</p>
       <textarea id="aCode" rows="3" placeholder="GO2-…" autocapitalize="off" spellcheck="false">${esc(impCode)}</textarea></details>
@@ -2548,6 +2609,7 @@ function askAuth(mode,fromWelcome){
     <div class="namebtns"><button type="button" class="gbtn" id="aX">Cancelar</button><button class="vbtn" id="aOk">${m==="in"?"Entrar":"Criar conta"}</button></div></form>`;
     d.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ const c=d.querySelector("#aCode"); if(c){impCode=c.value; impOpen=d.querySelector(".aimp").open;} m=b.dataset.m; draw();});
     d.querySelector("#aX").onclick=()=>close(true);
+    const fg=d.querySelector("#aForgot"); if(fg) fg.onclick=()=>{ const em=d.querySelector("#aMail").value.trim(); d.remove(); askReset(em,fromWelcome); };
     const f=d.querySelector("form"), msg=d.querySelector("#aMsg"), ok=d.querySelector("#aOk");
     setTimeout(()=>{const i=d.querySelector(m==="up"?"#aName":"#aMail"); if(i&&!i.value) i.focus(); else d.querySelector("#aMail").focus();},200);
     f.onsubmit=async e=>{ e.preventDefault();
@@ -2571,6 +2633,44 @@ function askAuth(mode,fromWelcome){
   draw(); document.body.appendChild(d);
   d.addEventListener("click",e=>{ if(e.target===d) close(true); });
 }
+// recuperar a password: o Supabase manda um email com um link de volta ao site; ao abrir, pede a nova password
+function smallModal(html){ const d=document.createElement("div"); d.id="namebox"; d.className="nameov"; d.innerHTML=html; document.body.appendChild(d);
+  const close=()=>{d.classList.add("out"); setTimeout(()=>d.remove(),280);}; return [d,close]; }
+function askReset(email,fromWelcome){
+  if(!SB||document.getElementById("namebox")) return;
+  const [d,close]=smallModal(`<form class="namecard authcard" novalidate><h2>Recuperar a password</h2>
+    <p>Escreve o email da tua conta. Recebes um link para escolheres uma password nova.</p>
+    <label class="afl" for="rMail">Email</label><input id="rMail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" value="${esc(email||"")}" placeholder="nome@exemplo.com">
+    <span class="xmsg" id="rMsg"></span>
+    <div class="namebtns"><button type="button" class="gbtn" id="rX">Voltar</button><button class="vbtn" id="rOk">Enviar link</button></div></form>`);
+  setTimeout(()=>d.querySelector("#rMail").focus(),200);
+  d.querySelector("#rX").onclick=()=>{ d.remove(); askAuth("in",fromWelcome); };
+  d.querySelector("form").onsubmit=async e=>{ e.preventDefault(); const em=d.querySelector("#rMail").value.trim(), msg=d.querySelector("#rMsg"), ok=d.querySelector("#rOk");
+    if(!em) return flashMsg(msg,"Escreve o teu email.",false);
+    ok.disabled=true; ok.textContent="A enviar…";
+    const {error}=await SB.auth.resetPasswordForEmail(em,{redirectTo:location.origin+location.pathname});
+    ok.disabled=false; ok.textContent="Enviar outra vez";
+    if(error) return flashMsg(msg,SB_ERR(error.message),false);
+    flashMsg(msg,"Se houver uma conta com este email, o link chega em poucos minutos. Vê também o spam.",true); };
+}
+function askNewPass(fromLink){
+  if(!SB) return; const ex=document.getElementById("namebox"); if(ex) ex.remove();
+  const [d,close]=smallModal(`<form class="namecard authcard" novalidate><h2>${fromLink?"Escolhe a password nova":"Mudar a password"}</h2>
+    <p>${fromLink?"Entraste pelo link do email. Escolhe agora a password nova.":"Escreve a password nova duas vezes."}</p>
+    <label class="afl" for="nP1">Password nova</label><input id="nP1" type="password" autocomplete="new-password" placeholder="Pelo menos 6 caracteres">
+    <label class="afl" for="nP2">Repete a password</label><input id="nP2" type="password" autocomplete="new-password">
+    <span class="xmsg" id="nMsg"></span>
+    <div class="namebtns">${fromLink?'':'<button type="button" class="gbtn" id="nX">Cancelar</button>'}<button class="vbtn" id="nOk">Guardar password</button></div></form>`);
+  setTimeout(()=>d.querySelector("#nP1").focus(),200);
+  const x=d.querySelector("#nX"); if(x) x.onclick=close;
+  d.querySelector("form").onsubmit=async e=>{ e.preventDefault(); const a=d.querySelector("#nP1").value, b=d.querySelector("#nP2").value, msg=d.querySelector("#nMsg"), ok=d.querySelector("#nOk");
+    if(a.length<6) return flashMsg(msg,"A password tem de ter pelo menos 6 caracteres.",false);
+    if(a!==b) return flashMsg(msg,"As duas passwords não são iguais.",false);
+    ok.disabled=true; ok.textContent="A guardar…";
+    const {error}=await SB.auth.updateUser({password:a});
+    if(error){ ok.disabled=false; ok.textContent="Guardar password"; return flashMsg(msg,SB_ERR(error.message),false); }
+    close(); toast("Password guardada."); if(fromLink) try{ history.replaceState(null,"",location.pathname); }catch(e){} };
+}
 async function sbOut(){ if(!SB) return; await sbPush(); await SB.auth.signOut(); sbLastLB=""; toast("Sessão terminada. O progresso continua guardado neste aparelho."); }
 function accountCard(){
   if(!SB) return "";
@@ -2580,27 +2680,28 @@ function accountCard(){
   return `<section class="card appear acc"><div class="ch"><span class="lbl">Conta</span><span class="tag">Sincronizada</span></div>
     <p class="sub" style="margin:0 0 12px">Ligada como <b>${esc(sbUser.email||"")}</b>. O progresso é guardado na conta e junta-se ao dos teus outros aparelhos.</p>
     <label class="chk"><input type="checkbox" id="accBoard" ${cfg.board===false?'':'checked'}> Aparecer na classificação</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="gbtn" id="accSync">Sincronizar agora</button><button class="gbtn" id="accOut">Terminar sessão</button></div></section>`;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="gbtn" id="accSync">Sincronizar agora</button><button class="gbtn" id="accPw">Mudar a password</button><button class="gbtn" id="accOut">Terminar sessão</button></div></section>`;
 }
 function bindAccount(){
   const u=$("#accUp"), i=$("#accIn"), o=$("#accOut"), s=$("#accSync"), b=$("#accBoard");
   if(u) u.onclick=()=>askAuth("up"); if(i) i.onclick=()=>askAuth("in");
-  if(o) o.onclick=()=>sbOut();
+  if(o) o.onclick=()=>sbOut(); const pw=$("#accPw"); if(pw) pw.onclick=()=>askNewPass(false);
   if(s) s.onclick=async()=>{ s.disabled=true; s.textContent="A sincronizar…"; await sbPull(); s.disabled=false; s.textContent="Sincronizar agora"; toast("Progresso sincronizado."); };
   if(b) b.onchange=async()=>{ cfg.board=b.checked; saveCfg(); sbLastLB=""; await sbLB(); toast(b.checked?"Voltaste à classificação.":"Saíste da classificação."); };
 }
-const RK_TABS=[["points","Pontos"],["acc","Precisão"],["best","Melhor teste"],["streak","Sequência"]];
+const RK_TABS=[["points","Pontos"],["combo","Melhor sequência"],["acc","Precisão"],["best","Melhor teste"],["streak","Dias seguidos"]];
 const RK={
-  val:{points:r=>r.points, acc:r=>r.answered>=50?r.points/r.answered*100:null, best:r=>r.best_grade, streak:r=>r.streak>0?r.streak:null},
-  show:{points:r=>fmt(r.points), acc:r=>fmt(r.points/r.answered*100,1)+"%", best:r=>fmt(r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
-  sub:{points:r=>`${fmt(r.answered)} respostas`, acc:r=>`${fmt(r.points)} certas em ${fmt(r.answered)}`, best:r=>`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
-  empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", streak:"Ninguém tem uma sequência ativa."}
+  val:{points:r=>r.points, combo:r=>r.best_combo>0?r.best_combo:null, acc:r=>r.answered>=50?rkC(r)/r.answered*100:null, best:r=>r.best_grade, streak:r=>r.streak>0?r.streak:null},
+  show:{points:r=>fmt(r.points), combo:r=>"🔥 "+r.best_combo, acc:r=>fmt(rkC(r)/r.answered*100,1)+"%", best:r=>fmt(r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
+  sub:{points:r=>`${fmt(rkC(r))} certas em ${fmt(r.answered)}`, combo:r=>`certas seguidas · ${fmt(r.points)} pontos`, acc:r=>`${fmt(rkC(r))} certas em ${fmt(r.answered)}`, best:r=>`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
+  empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", combo:"Ainda ninguém fez uma sequência de certas.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", streak:"Ninguém tem uma sequência ativa."}
 };
+const rkC=r=>r.correct!=null?r.correct:r.points;
 const rkReduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 // a página da classificação é desenhada uma vez; trocar de aba ou atualizar só mexe na lista (as linhas deslizam para a nova posição)
 async function renderRank(){
   tipHide();
-  $("#main").innerHTML=`<div class="top appear"><div><h1>Classificação</h1><p>Pontos = respostas certas. A precisão só conta a partir de 50 respostas.</p></div>
+  $("#main").innerHTML=`<div class="top appear"><div><h1>Classificação</h1><p>Certa +10 (cálculo +15), errada −5. Certas seguidas multiplicam: 3 ×1,5 · 5 ×2 · 10 ×3.</p></div>
     <div class="topr"><button class="gbtn" id="rkR">${I.refresh}<span>Atualizar</span></button></div></div>
     ${sbUser?'':`<section class="card appear rkcta"><div><b>Ainda não estás na classificação.</b><p class="sub" style="margin:4px 0 0">Cria uma conta e o progresso deste aparelho entra logo.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="vbtn" id="rkUp">Criar conta</button><button class="gbtn" id="rkIn">Entrar</button></div></section>`}
     <div class="rktabs appear" role="tablist"><span class="rkind" id="rkInd"></span>${RK_TABS.map(([k,l])=>`<button role="tab" aria-selected="${rankTab===k}" data-rk="${k}">${l}</button>`).join("")}</div>
@@ -3035,7 +3136,7 @@ function renderQ(dir){
   const oldBar=document.querySelector("#main .prog i"), fromW=oldBar?oldBar.style.width:null;
   $("#main").innerHTML=`
   <div class="qbar"><span class="pill">${test?'Teste':S.mode==="revisao"?'Revisão':S.mode==="estudo"?(S.ctx.final?'Teste do capítulo':'Bloco '+(S.ctx.bi+1)):S.mode==="calc"?'Cálculos':'Treino'} · ${S.i+1}/${total}</span>
-    <div style="display:flex;gap:8px">${test?`<span class="pill">${done} respondidas</span><span class="pill time" id="time">${mmss(S.end-Date.now())}</span>`:`<span class="pill ok">✓ ${S.ok}</span><span class="pill bad">✗ ${S.bad}</span>`}</div></div>
+    <div style="display:flex;gap:8px">${test?`<span class="pill">${done} respondidas</span><span class="pill time" id="time">${mmss(S.end-Date.now())}</span>`:`${comboPill()}<span class="pill ok">✓ ${S.ok}</span><span class="pill bad">✗ ${S.bad}</span>`}</div></div>
   <div class="prog"><i style="width:${prog}%"></i></div>
   <section class="card qcard${dir?'':' appear'}" ${dir?'':'style="animation-duration:.45s"'}>
     <div class="ch"><span class="ct" style="font-size:1.25rem">Pergunta ${S.i+1}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${q.again?'<span class="tag r">Outra vez</span>':''}<span class="tag">${q.w==="PR"?"Prática":q.w}</span>${q.t==="c"?'<span class="tag c">Cálculo</span>':''}</span></div>
@@ -3071,6 +3172,7 @@ function record(q, ok){
     if(ok){ s.b=Math.min(4,s.b+1); delete store.wrong[q.id]; } else { s.b=0; store.wrong[q.id]=1; }
     s.due=Date.now()+INTERVAL[s.b]; store.srs[q.id]=s;
   }
+  if(typeof ptsAward==="function"&&S){ S.lastAward=ptsAward(q,ok); }
   save();
   if(S && !S.goalHit && d.n>=cfg.goal){ S.goalHit=true; toast(`Meta de hoje cumprida: ${cfg.goal} perguntas!`); }
 }
@@ -3101,7 +3203,7 @@ function choose(k){
   if(q.pick!==null) return;
   q.pick=k; const ok=k>=0 && q.opts[k].ok; record(q,ok); ok?S.ok++:S.bad++;
   if(!ok && !q.again){ const pos=Math.min(S.qs.length, S.i+4); S.qs.splice(pos,0,cloneQ(q)); q.requeued=true; }
-  revealAnswer(q); renderSide();
+  revealAnswer(q); renderSide(); if(SB) ptsFx(q,S.lastAward);
   const fb=document.querySelector(".fb"); if(fb && fb.getBoundingClientRect().bottom>innerHeight) fb.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 function next(){ if(S.mode!=="teste" && S.qs[S.i].pick===null) return; if(S.i<S.qs.length-1) goQ(S.i+1); else finish(); }
@@ -3168,6 +3270,7 @@ function finish(){
   else if(mode==="calc") $("#again").onclick=()=>startCalc(ctx.calc);
   else $("#again").onclick=()=>startQuiz(mode==="revisao"&&!nDue()?"treino":mode);
   $("#home").onclick=()=>go("painel");
+  if(SB&&S.pg!==undefined){ const t=document.querySelector("#main .top p"); if(t) t.insertAdjacentHTML("afterend",`<div class="ptsum"><span class="${S.pg>=0?'up':'down'}">${S.pg>=0?'+':'−'}${fmt(Math.abs(S.pg))} pontos</span><span>🔥 melhor sequência: ${S.run||0}</span><span>Total: ${fmt(Math.max(0,store.pts||0))}</span></div>`); }
   window.scrollTo(0,0);
 }
 
