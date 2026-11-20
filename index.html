@@ -2150,6 +2150,14 @@ try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s) store=Object.a
 store.srs=store.srs||{}; store.study=store.study||{}; store.parts=store.parts||{};
 if(!store.dev) store.dev=Math.random().toString(36).slice(2,10);
 if(store.studyV!==2){['W3','W4','W5','W6','W7','W8'].forEach(w=>delete store.study[w]); store.studyV=2;}
+// conserta totais estragados (ex.: certas > respostas): refaz a partir das contas por semana
+function fixCounts(o){ o=o||store; const num=v=>Number.isFinite(+v)?+v:0; let ok=0,n=0;
+  for(const w in (o.byW||{})){ ok+=num(o.byW[w].ok); n+=num(o.byW[w].n); }
+  o.ok=num(o.ok); o.n=num(o.n); if(o.pts!==undefined) o.pts=num(o.pts);
+  if(o.ok>o.n||o.n<0||o.ok<0){ if(n>=ok&&ok>=0&&n>0){o.ok=ok;o.n=n;} else {o.ok=Math.max(0,o.ok);o.n=Math.max(o.n,o.ok);} }
+  if(o.calc){ o.calc.ok=num(o.calc.ok); o.calc.n=Math.max(num(o.calc.n),num(o.calc.ok)); }
+  return o; }
+fixCounts();
 for(const id in store.wrong){ if(!(id in store.last)) store.last[id]=0; if(!store.srs[id]) store.srs[id]={b:0,due:0}; }
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){} if(typeof sbQueue==='function') sbQueue();};
 const dayKey = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
@@ -2332,7 +2340,7 @@ function mergeStore(inc){
   const hk=h=>{const m=(h.d||"").match(/(\d+)\/(\d+) (\d+):(\d+)/); return m?(+m[2])*1e6+(+m[1])*1e4+(+m[3])*100+(+m[4]):0;};
   hist.sort((a,b)=>hk(a)-hk(b));
   Object.assign(store,{ok:tot.ok,n:tot.n,pts:tot.pts,bestCombo:Math.max(store.bestCombo||0,inc.bestCombo||0),rr:Math.max(store.rr||0,inc.rr||0),byW:tot.byW,days:tot.days,calc:tot.calc,parts,srs,last,wrong,study,hist:hist.slice(-30)});
-  save();
+  fixCounts(); save();
 }
 function bindXfer(){
   const cp=$("#xcopy"), ld=$("#xload"), ta=$("#xcode"); if(!cp) return;
@@ -2594,7 +2602,7 @@ async function sbPush(){
   try{ await SB.from("progress").upsert({user_id:sbUser.id,data:{v:1,s:store,c},updated_at:new Date().toISOString()}); }catch(e){ console.warn("sbPush",e); }
   await sbLB();
 }
-function myRow(){ const h=store.hist||[]; const best=h.length?Math.max(...h.map(t=>t.nota)):null;
+function myRow(){ fixCounts(); const h=store.hist||[]; const best=h.length?Math.max(...h.map(t=>t.nota)):null;
   return {user_id:sbUser.id,name:(cfg.name||"Sem nome").slice(0,30),emoji:cfg.emoji||null,points:Math.max(0,Math.round(store.pts||0)),correct:store.ok||0,best_combo:store.bestCombo||0,answered:store.n||0,tests:h.length,best_grade:best===null?null:Math.round(best*10)/10,streak:streak()}; }
 async function sbLB(){
   if(!SB||!sbUser) return;
@@ -2719,8 +2727,8 @@ const RK={
   empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", combo:"Ainda ninguém fez uma sequência de certas.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", streak:"Ninguém tem uma sequência ativa."}
 };
 // linhas gravadas antes da coluna «correct» existir ficam com 0 certas e pontos > 0: não se sabe as certas até a pessoa voltar ao site
-const rkC=r=>(r.correct==null||(r.correct===0&&r.points>0))?null:r.correct;
-const rkCS=r=>{const c=rkC(r); return c===null?`${fmt(r.answered)} resposta${r.answered===1?'':'s'}`:`${fmt(c)} certa${c===1?'':'s'} em ${fmt(r.answered)}`;};
+const rkC=r=>(r.correct==null||(r.correct===0&&r.points>0)||r.correct>r.answered)?null:r.correct;
+const rkCS=r=>{const c=rkC(r); return c===null?(r.correct>r.answered?`${fmt(r.correct)} certa${r.correct===1?'':'s'}`:`${fmt(r.answered)} resposta${r.answered===1?'':'s'}`):`${fmt(c)} certa${c===1?'':'s'} em ${fmt(r.answered)}`;};
 const rkReduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 // a página da classificação é desenhada uma vez; trocar de aba ou atualizar só mexe na lista (as linhas deslizam para a nova posição)
 async function renderRank(){
