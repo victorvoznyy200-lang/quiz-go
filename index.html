@@ -1811,7 +1811,7 @@ null, // (pergunta das têxteis no 1.º ano removida a pedido da Guna, 20 nov.; 
 ["W4", "t", "No modelo DART, o que significa o «T»?", ["Transparência: partilha de informação que gera confiança", "Tecnologia: ferramentas digitais para o cliente", "Tempo: rapidez na resposta ao cliente", "Troca: interação entre pares"], "Diálogo, Acesso, Risco-benefício, Transparência.", 14],
 ["W4", "t", "Em que fase da cocriação a montante entra a Threadless?", ["Design", "Ideia", "Protótipo", "Produção"], "LEGO Ideas = ideia; Decathlon = protótipo.", 14],
 ["W4", "t", "Qual é o impacto nas operações do LEGO Ideas?", ["Procura sinalizada antes de investir: menor risco de previsão", "Só se produz o aprovado, em tiragens limitadas: menos stock", "Falhas corrigidas antes da industrialização, quando custa menos", "O cliente monta o produto e reduz o custo da empresa"], "A segunda é a Threadless; a terceira a Decathlon.", 14],
-["W4", "t", "Quantos apoiantes precisa uma ideia no LEGO Ideas para passar à avaliação?", ["10 000", "1 000", "5 000", "100 000"], "Com 10 000 apoiantes a ideia é avaliada pela LEGO.", 14],
+null, // (pergunta dos 10 000 apoiantes do LEGO Ideas removida a pedido da Guna, 20 nov.; o lugar fica para não mudar os ids)
 ["W4", "t", "Segundo Ranjan & Read (2016), a cocriação é…", ["Coprodução + valor em uso", "Diálogo + acesso + risco + transparência", "Coprodução − custos para a empresa", "Servitização + personalização"], "A segunda é o modelo DART.", 15],
 ["W4", "t", "O que é o «valor em uso»?", ["O valor realiza-se quando o cliente usa a oferta, no seu contexto", "O cliente participa na produção com conhecimento e trabalho", "O cliente paga pelo uso temporário de um recurso", "O valor é definido pela empresa no momento da venda"], "Ex.: a utilidade de uma moto depende de como e onde é usada.", 15],
 ["W4", "t", "Que efeito da coprodução diz que «o tempo do cliente passa a contar no desenho do processo»?", ["Capacidade", "Variabilidade", "Qualidade partilhada", "Interfaces"], "Variabilidade = cada cliente traz inputs diferentes; interfaces = tecnologia simples e robusta.", 15],
@@ -2847,7 +2847,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795209800";
+const BUILD="1795210656";
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD&&!(view==="q"&&S&&!S.done)&&!document.getElementById("namebox")) location.reload(); }catch(e){} }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 setInterval(checkUpdate,10*60*1000);
