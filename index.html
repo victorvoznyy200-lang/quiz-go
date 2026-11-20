@@ -2691,12 +2691,14 @@ function bindAccount(){
 }
 const RK_TABS=[["points","Pontos"],["combo","Melhor sequência"],["acc","Precisão"],["best","Melhor teste"],["streak","Dias seguidos"]];
 const RK={
-  val:{points:r=>r.points, combo:r=>r.best_combo>0?r.best_combo:null, acc:r=>r.answered>=50?rkC(r)/r.answered*100:null, best:r=>r.best_grade, streak:r=>r.streak>0?r.streak:null},
+  val:{points:r=>r.points, combo:r=>r.best_combo>0?r.best_combo:null, acc:r=>r.answered>=50&&rkC(r)!==null?rkC(r)/r.answered*100:null, best:r=>r.best_grade, streak:r=>r.streak>0?r.streak:null},
   show:{points:r=>fmt(r.points), combo:r=>"🔥 "+r.best_combo, acc:r=>fmt(rkC(r)/r.answered*100,1)+"%", best:r=>fmt(r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
-  sub:{points:r=>`${fmt(rkC(r))} certas em ${fmt(r.answered)}`, combo:r=>`certas seguidas · ${fmt(r.points)} pontos`, acc:r=>`${fmt(rkC(r))} certas em ${fmt(r.answered)}`, best:r=>`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
+  sub:{points:r=>rkCS(r), combo:r=>`certas seguidas · ${fmt(r.points)} pontos`, acc:r=>rkCS(r), best:r=>`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
   empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", combo:"Ainda ninguém fez uma sequência de certas.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", streak:"Ninguém tem uma sequência ativa."}
 };
-const rkC=r=>r.correct!=null?r.correct:r.points;
+// linhas gravadas antes da coluna «correct» existir ficam com 0 certas e pontos > 0: não se sabe as certas até a pessoa voltar ao site
+const rkC=r=>(r.correct==null||(r.correct===0&&r.points>0))?null:r.correct;
+const rkCS=r=>{const c=rkC(r); return c===null?`${fmt(r.answered)} resposta${r.answered===1?'':'s'}`:`${fmt(c)} certa${c===1?'':'s'} em ${fmt(r.answered)}`;};
 const rkReduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 // a página da classificação é desenhada uma vez; trocar de aba ou atualizar só mexe na lista (as linhas deslizam para a nova posição)
 async function renderRank(){
