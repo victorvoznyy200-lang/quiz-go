@@ -617,6 +617,33 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .prog{height:8px;border-radius:6px;background:var(--track);overflow:hidden}
 .prog i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--acc),var(--acc-2));box-shadow:0 0 14px var(--acc-glow);transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .qtext{font-size:1.2rem;font-weight:500;line-height:1.45}
+.dfig{margin:14px 0 4px}
+.dtbl{width:100%;border-collapse:collapse;font-size:.92rem}
+.dtbl th,.dtbl td{padding:8px 10px;border-bottom:1px solid rgba(127,127,127,.25);text-align:left}
+.dtbl thead th{font-size:.78rem;opacity:.8;font-weight:600}
+.dtbl td.n{text-align:right;font-variant-numeric:tabular-nums}
+.mxt th,.mxt td{text-align:center;border:1px solid rgba(127,127,127,.25);width:22%}
+.mxt thead th:first-child{width:34%;font-size:.74rem}
+.mxi{display:inline-grid;place-items:center;min-width:30px;height:30px;border-radius:9px;background:var(--acc-soft);color:var(--ink);font-weight:700}
+.dbars{border:1px solid rgba(127,127,127,.25);border-radius:14px;padding:12px 14px}
+.dbh{font-size:.78rem;font-weight:600;opacity:.8;margin-bottom:8px}
+.dbr{display:grid;grid-template-columns:var(--lw,42px) 1fr 76px;gap:10px;align-items:center;padding:4px 0;font-size:.92rem}
+.dbr .n{font-variant-numeric:tabular-nums;text-align:right;min-width:64px}
+.dbt{position:relative;height:12px;border-radius:6px;background:rgba(127,127,127,.15)}
+.dbt i{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--acc)}
+.dbt em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--bad)}
+.dbr.tot{border-top:1px solid rgba(127,127,127,.25);margin-top:4px;padding-top:8px}
+.dtree{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
+.dnode{writing-mode:vertical-rl;transform:rotate(180deg);font-size:.78rem;font-weight:700;padding:10px 6px;border-radius:8px;border:1.5px solid var(--acc);color:var(--acc)}
+.dopts{display:flex;flex-direction:column;gap:10px;border-left:2px solid rgba(127,127,127,.35);padding-left:12px}
+.dopt{border:1px solid rgba(127,127,127,.28);border-radius:14px;padding:10px 12px;position:relative}
+.dopt:before{content:"";position:absolute;left:-14px;top:22px;width:13px;border-top:2px solid rgba(127,127,127,.35)}
+.dhead{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.dhead .inv{font-size:.8rem;color:var(--bad);font-weight:600}
+.dout{display:flex;justify-content:space-between;gap:8px;padding:4px 0 4px 12px;border-left:2px dashed rgba(127,127,127,.35);font-size:.92rem}
+.dout i{font-style:normal;font-weight:700;color:var(--acc);margin-left:4px}
+.dout .n{font-weight:700;font-variant-numeric:tabular-nums}
+.dunit{grid-column:2;font-size:.76rem;opacity:.7;text-align:right;margin-top:-4px}
 .flux{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 8px;margin:14px 0 4px;padding:12px 8px;border:1px solid rgba(127,127,127,.28);border-radius:14px}
 .flux figure{flex:0 0 calc(20% - 7px);margin:0;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .flux svg{width:100%;max-width:84px;height:auto;overflow:visible}
@@ -2361,6 +2388,49 @@ function pertFig(q){
   const R=[["Obras","Obras no espaço",2,"—"],["Elevadores","Comprar e instalar os elevadores",4,"Obras"],["Licença","Tratar do licenciamento",3,"Obras"],["Formação","Formar os técnicos",2,"Obras"],["Testes","Testar os equipamentos",2,"Elevadores e Licença"],["Abertura","Abrir ao público",1,"Formação e Testes"]];
   return `<div class="scroll pert"><table><thead><tr><th>Atividade</th><th class="pd">O que é</th><th>Semanas</th><th>Começa depois de</th></tr></thead><tbody>${R.map(r=>`<tr><td><b>${r[0]}</b></td><td class="pd">${r[1]}</td><td style="text-align:center">${r[2]}</td><td>${r[3]}</td></tr>`).join("")}</tbody></table></div>`;
 }
+// ───────── Figuras de dados: tabelas, barras e árvores de decisão (por id da pergunta)
+const FIGS=(()=>{
+  const T=(a,b,c,d,p,la,lb)=>({t:"tree",o:[{n:"Ampliar",i:a,a:b,b:c},{n:"Manter",i:0,a:d[0],b:d[1]}],p,la,lb});
+  const P1={t:"bars",h:"Consumo anual em valor",u:" €",r:[["P1",600],["P2",200],["P3",90],["P4",60],["P5",50]]};
+  const CL={t:"tbl",h:["Cliente","Encomendas","Entregas"],r:[["X",50,50],["Y",200,20]]};
+  const MX={t:"mx",h:"Faturação ↓ · Volume →",c:{"A,B":"N","C,A":"K","B,B":"M","B,C":"Q"}};
+  const EOQ={t:"tbl",h:["Dado","Valor"],r:[["Procura anual","12 000 unidades"],["Custo por encomenda","50 €"],["Custo de posse","3 € por unidade e ano"]]};
+  return {
+  s111:{t:"tree",o:[{n:"Ampliar",i:100,a:320,b:120}],p:.6},
+  s112:{t:"tree",o:[{n:"Manter",i:0,a:180,b:100}],p:.6},
+  s500:T(120,400,150,[220,140],.7), s501:T(60,330,90,[180,120],null),
+  s1088:{t:"tree",o:[{n:"Ampliar",i:100,a:320,b:120}],p:.6},
+  s1089:{t:"tree",o:[{n:"Manter",i:0,a:180,b:100}],p:.6},
+  s1090:T(100,320,120,[180,100],.6), s1091:T(100,320,120,[180,100],null),
+  s1322:T(50,260,80,[150,110],.5), s1323:T(50,260,80,[150,110],.8), s1324:T(50,260,80,[150,110],null),
+  s1325:{t:"tree",o:[{n:"Manter",i:0,a:200,b:90}],p:.3},
+  s1326:{t:"tree",o:[{n:"Lançar",i:100,a:500,b:50},{n:"Não lançar",v:0}],p:.4,la:"Sucesso",lb:"Fracasso"},
+  s651:P1, s652:P1,
+  s1182:{t:"bars",h:"Valor anual",u:" €",r:[["R1",4000],["R2",2400],["R3",700],["R4",500],["R5",250],["R6",150]]},
+  s723:{t:"bars",h:"Volume anual ocupado",u:" dm³",r:[["K",270],["L",120],["M",55],["N",24]]},
+  s549:{t:"bars",h:"Tempo de cada operação",u:" s",r:[["Montagem",50],["Pintura",45],["Teste",10],["Polimento",20],["Embalagem",15]]},
+  s550:{t:"bars",h:"Tempo de cada operação (takt time = 48 s)",u:" s",r:[["Montagem",50],["Pintura",45],["Teste",10],["Embalagem",15]],line:48},
+  s609:{t:"tbl",h:["Cliente","Encomendas (20 € cada)","Entregas (50 € cada)"],r:[["X",50,50],["Y",200,20]]},
+  s1159:CL,
+  s608:{t:"tbl",h:["Atividade","Custo anual","Quantas por ano"],r:[["Processar encomendas","20 000 €","1 000"],["Fazer entregas","30 000 €","600"]]},
+  s640:EOQ, s641:EOQ,
+  s737:{t:"tbl",h:["Mês","Erro da média móvel","Erro do alisamento"],r:[["1.º",3,5],["2.º",2,2],["3.º",4,4]]},
+  s1239:{t:"tbl",h:["Mês","Erro da média móvel","Erro do alisamento"],r:[["1.º",4,1],["2.º",6,3],["3.º",2,2]]},
+  s1229:MX, s1230:MX };
+})();
+const nf=v=>typeof v==="number"?String(v).replace(/\B(?=(\d{3})+(?!\d))/g," "):v;
+function dataFig(q){
+  const f=q&&q.id&&FIGS[q.id]; if(!f) return "";
+  if(f.t==="tbl") return `<div class="scroll dfig"><table class="dtbl"><thead><tr>${f.h.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${f.r.map(r=>`<tr>${r.map((c,i)=>i?`<td class="n">${nf(c)}</td>`:`<td><b>${c}</b></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  if(f.t==="bars"){ const mx=Math.max(...f.r.map(r=>r[1]),f.line||0), tot=f.r.reduce((s,r)=>s+r[1],0);
+    const lw=Math.max(3,...f.r.map(r=>String(r[0]).length))*0.62+1.2;
+    return `<div class="dfig dbars" style="--lw:${lw.toFixed(1)}em"><div class="dbh">${f.h}</div>${f.r.map(r=>`<div class="dbr"><b>${r[0]}</b><span class="dbt"><i style="width:${(r[1]/mx*100).toFixed(1)}%"></i>${f.line?`<em style="left:${(f.line/mx*100).toFixed(1)}%"></em>`:''}</span><span class="n">${nf(r[1])}${f.u}</span></div>`).join("")}${f.line?'':`<div class="dbr tot"><b>Total</b><span></span><span class="n">${nf(tot)}${f.u}</span></div>`}</div>`; }
+  if(f.t==="mx"){ const L=["A","B","C"];
+    return `<div class="scroll dfig"><table class="dtbl mxt"><thead><tr><th>${f.h}</th>${L.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${L.map(r=>`<tr><th>${r}</th>${L.map(c=>`<td>${f.c[r+","+c]?`<span class="mxi">${f.c[r+","+c]}</span>`:''}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`; }
+  if(f.t==="tree"){ const pa=f.p==null?"p":Math.round(f.p*100)+"%", pb=f.p==null?"1 − p":Math.round((1-f.p)*100)+"%", la=f.la||"Procura alta", lb=f.lb||"Procura baixa";
+    return `<div class="dfig dtree"><div class="dnode">Decisão</div><div class="dopts">${f.o.map(o=>`<div class="dopt"><div class="dhead"><b>${o.n}</b>${o.i?`<span class="inv">investimento ${o.i}</span>`:o.v===undefined?'<span class="inv">sem investimento</span>':''}</div>${o.v!==undefined?`<div class="dout"><span>Resultado certo</span><span class="n">${o.v}</span></div>`:`<div class="dout"><span>${la} <i>${pa}</i></span><span class="n">${o.a}</span></div><div class="dout"><span>${lb} <i>${pb}</i></span><span class="n">${o.b}</span></div>`}</div>`).join("")}</div><div class="dunit">valores em mil €</div></div>`; }
+  return "";
+}
 const LET="ABCD";
 
 function renderSide(){
@@ -2891,8 +2961,19 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795279821";
-async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD&&!(view==="q"&&S&&!S.done)&&!document.getElementById("namebox")) location.reload(); }catch(e){} }
+const BUILD="1795285041";
+let updPending=false;
+async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
+// Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
+function updPop(){
+  if(!updPending||document.getElementById("updbox")) return;
+  if((view==="q"&&S&&!S.done)||document.getElementById("namebox")){ return; }
+  const d=document.createElement("div"); d.id="updbox"; d.className="nameov"; d.setAttribute("role","dialog"); d.setAttribute("aria-modal","true"); d.setAttribute("aria-labelledby","updT");
+  d.innerHTML=`<div class="namecard"><div style="font-size:2.4rem;line-height:1">🔄</div><h2 id="updT">Há uma atualização</h2><p>O quiz foi atualizado e é preciso reiniciar a página.<br><b>Nenhum progresso será apagado.</b></p><div class="namebtns"><button class="gbtn" id="updGo" style="min-width:160px;justify-content:center">Reiniciar</button></div></div>`;
+  document.body.appendChild(d);
+  const b=d.querySelector("#updGo"); b.focus();
+  b.onclick=async()=>{ b.disabled=true; b.textContent="A guardar…"; save(); try{ await Promise.race([sbPush(),new Promise(r=>setTimeout(r,4000))]); }catch(e){} location.reload(); };
+}
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 setInterval(checkUpdate,10*60*1000);
 function sbQueue(){ if(!SB||!sbUser) return; clearTimeout(sbPushT); sbPushT=setTimeout(()=>sbPush(),3000); }
@@ -3502,7 +3583,7 @@ function renderQ(dir){
   <section class="card qcard${dir?'':' appear'}" ${dir?'':'style="animation-duration:.45s"'}>
     <div class="ch"><span class="ct" style="font-size:1.25rem">Pergunta ${S.i+1}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${q.again?'<span class="tag r">Outra vez</span>':''}<span class="tag">${q.w==="PR"?"Prática":q.w}</span>${q.t==="c"?'<span class="tag c">Cálculo</span>':''}</span></div>
     <p class="qtext">${esc(q.q)}</p>
-    ${fluxFig(q,reveal)}${pertFig(q)}
+    ${fluxFig(q,reveal)}${pertFig(q)}${dataFig(q)}
     <div class="opts">${q.opts.map((o,k)=>{let c="opt"; if(reveal){ if(o.ok) c+=" right"; else if(q.pick===k) c+=" wrong"; else c+=" dim"; } else if(q.pick===k) c+=" sel";
       return `<button class="${c}" data-k="${k}" ${reveal?'disabled':''}><span class="k">${LET[k]}</span><span class="t">${esc(o.txt)}</span></button>`;}).join("")}</div>
     ${!reveal?`<button class="idk" id="idk">${test&&q.pick===-1?'Marcada como «não sei»':'Não sei'}</button>`:''}
@@ -3635,6 +3716,7 @@ function finish(){
   $("#home").onclick=()=>go("painel");
   if(SB&&S.pg!==undefined){ const t=document.querySelector("#main .top p"); if(t) t.insertAdjacentHTML("afterend",`<div class="ptsum"><span class="${S.pg>=0?'up':'down'}">${S.pg>=0?'+':'−'}${fmt(Math.abs(S.pg))} pontos</span><span>🔥 melhor sequência: ${S.run||0}</span><span>Total: ${fmt(Math.max(0,store.pts||0))}</span></div>`); }
   window.scrollTo(0,0);
+  setTimeout(()=>{ updPending?updPop():checkUpdate(); },700);
 }
 
 if(cfg.name) saveCfg(); renderSide(); renderPainel(); if(!cfg.name&&!SB) askName(false);
