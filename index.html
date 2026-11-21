@@ -1817,7 +1817,7 @@ null, // (pergunta dos 10 000 apoiantes do LEGO Ideas removida a pedido da Guna,
 ["W4", "t", "Que efeito da coprodução diz que «o tempo do cliente passa a contar no desenho do processo»?", ["Capacidade", "Variabilidade", "Qualidade partilhada", "Interfaces"], "Variabilidade = cada cliente traz inputs diferentes; interfaces = tecnologia simples e robusta.", 15],
 ["W4", "t", "Que efeito da coprodução diz que «os colaboradores passam a orientar e apoiar o cliente»?", ["Competências", "Interfaces", "Dados e confiança", "Qualidade partilhada"], "Seis efeitos: variabilidade, capacidade, qualidade partilhada, interfaces, competências, dados e confiança.", 15],
 ["W4", "t", "No caso Yamaha, a que nível pertencem as campanhas e os preços de referência?", ["Marca e rede", "Concessionário", "Operações", "Oficina"], "O concessionário define o posicionamento local; as operações tratam capacidade e stocks.", 16],
-["W4", "t", "Qual é a unidade de análise do desafio Yamaha?", ["O concessionário", "A Yamaha Motor Europe", "A rede de concessionários", "A oficina"], "O concessionário tem autonomia dentro das normas da marca.", 16],
+null, // (pergunta da unidade de análise do desafio Yamaha removida a pedido da Guna, 21 nov.; o lugar fica para não mudar os ids)
 ["W4", "t", "Qual destas NÃO é característica de uma boa pergunta à Yamaha?", ["Pode ser respondida com pesquisa pública", "É operacional", "É específica de uma área e um indicador", "A resposta muda o diagnóstico ou a proposta"], "Uma boa pergunta NÃO é respondível por pesquisa pública.", 16],
 ["W4", "t", "Quantas perguntas pode cada grupo fazer à Yamaha?", ["Três", "Duas", "Cinco", "Uma por área"], "Cada grupo tem direito a três perguntas.", 16],
 // ───────── perguntas difíceis por bloco (Estudar)
@@ -2847,7 +2847,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795210716";
+const BUILD="1795269340";
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD&&!(view==="q"&&S&&!S.done)&&!document.getElementById("namebox")) location.reload(); }catch(e){} }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 setInterval(checkUpdate,10*60*1000);
