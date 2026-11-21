@@ -2961,7 +2961,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795289681";
+const BUILD="1795290622";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
@@ -3496,8 +3496,20 @@ function confetti(el){
     c.style.cssText=`left:${cx}px;top:${cy}px;background:${cols[i%cols.length]};--x:${Math.cos(a)*d}px;--y:${Math.sin(a)*d-60}px;--r:${Math.random()*720-360}deg;animation-delay:${Math.random()*80}ms;${i%3?'':'border-radius:50%'}`;
     document.body.appendChild(c); setTimeout(()=>c.remove(),1500); }
 }
-function openChap(w, bi){
+// Troca de bloco no Estudo: só o conteúdo do bloco sai e entra na horizontal (o cabeçalho e os números ficam fixos)
+let chapBusy=false;
+function openChap(w, bi, _in){
   const c=STUDY.find(x=>x.w===w); if(!c) return;
+  if(!_in && view==="cap" && CH && CH.w===w && bi!==undefined && bi!==CH.bi && $("#main .lesson")){
+    if(chapBusy) return;
+    const dir=bi>CH.bi?1:-1;
+    if(qReduce()) return openChap(w,bi,dir);
+    chapBusy=true;
+    const els=[...document.querySelectorAll("#main .lesson, #main .lesson + section, #main .navq")];
+    const an=els.map(e=>e.animate([{opacity:1,transform:"none"},{opacity:0,transform:`translateX(${-dir*32}px)`}],{duration:170,easing:"cubic-bezier(.4,0,1,1)",fill:"forwards"}));
+    Promise.all(an.map(a=>a.finished)).catch(()=>{}).then(()=>{ chapBusy=false; openChap(w,bi,dir); });
+    return;
+  }
   const done=new Set(store.study[w]||[]);
   if(bi===undefined){ bi=c.blocks.findIndex((_,k)=>!done.has(k)); if(bi<0) bi=0; }
   CH={w,bi}; clearInterval(timer); S=null; view="cap"; renderSide();
@@ -3523,7 +3535,13 @@ function openChap(w, bi){
   $("#nextB").onclick=()=>bi<n-1?openChap(w,bi+1):chapTest(w);
   const dq=$("#doQ"); if(dq) dq.onclick=()=>{ const order=shuffle(pending).concat(shuffle(ids.filter(id=>!pending.includes(id)))).slice(0,take); startQuiz("estudo", order.filter(id=>BYID[id]).map(id=>instantiate(BYID[id])), {w,bi}); };
   const ct=$("#cont"); if(ct) ct.onclick=()=>{ markBlock(w,bi); bi<n-1?openChap(w,bi+1):chapTest(w); };
-  window.scrollTo(0,0);
+  if(_in){
+    $("#main").querySelectorAll(".appear").forEach(e=>{e.classList.remove("appear"); e.style.animationDelay="";});
+    const st=$("#main .steps"), y=st?st.getBoundingClientRect().top+window.scrollY-16:0;
+    if(window.scrollY>y) window.scrollTo({top:y,behavior:qReduce()?"auto":"smooth"});
+    if(!qReduce()) [...document.querySelectorAll("#main .lesson, #main .lesson + section, #main .navq")].forEach((e,k)=>e.animate([{opacity:0,transform:`translateX(${_in*32}px)`},{opacity:1,transform:"none"}],{duration:300,delay:k*45,easing:"cubic-bezier(.2,.8,.2,1)",fill:"backwards"}));
+    const cur=$("#main .step.cur"); if(cur&&!qReduce()) cur.animate([{transform:"scale(.82)"},{transform:"scale(1.08)"},{transform:"none"}],{duration:320,easing:"ease-out"});
+  } else window.scrollTo(0,0);
 }
 function markBlock(w,bi){ const a=new Set(store.study[w]||[]); a.add(bi); store.study[w]=[...a]; save(); }
 function chapTest(w){
