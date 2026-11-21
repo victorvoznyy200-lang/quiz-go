@@ -2426,12 +2426,25 @@ const FIGS=(()=>{
   s1229:MX, s1230:MX };
 })();
 const nf=v=>typeof v==="number"?String(v).replace(/\B(?=(\d{3})+(?!\d))/g," "):v;
+// Figuras para as perguntas geradas (números novos de cada vez): lê os dados do enunciado
+function genFig(q){
+  const t=q.q, g=q.gen, num=x=>+String(x).replace(",",".");
+  if(g==="abcPct"){ const r=[...t.matchAll(/ref\. (\d+) — (\d+)/g)].map(m=>["Ref. "+m[1],+m[2]]); if(r.length>=3) return {t:"bars",h:"Custo anual por referência",u:" €",r}; }
+  if(g==="mm3"){ const r=[...t.matchAll(/(jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez) (\d+)/g)].map(m=>[m[1],+m[2]]); if(r.length>=3) return {t:"bars",h:"Procura por mês",u:"",r,nt:1}; }
+  if(g==="mad"){ const r=[...t.matchAll(/\((\d+) vs (\d+)\)/g)].map((m,i)=>[(i+1)+".º mês",m[1],m[2]]); if(r.length) return {t:"tbl",h:["Mês","Real","Previsão"],r}; }
+  if(g==="cpm"){ const r=[...t.matchAll(/([A-H]) (\d+)(?: \(após ([^)]+)\))?/g)].map(m=>[m[1],m[2],m[3]||"—"]); if(r.length>=3) return {t:"tbl",h:["Atividade","Semanas","Começa depois de"],r}; }
+  if(g==="prodVar"){ const o=t.match(/Output: (\d+) → (\d+)/), r=[...t.matchAll(/(trabalho|materiais|outros) (\d+) → (\d+)/g)].map(m=>["Input: "+m[1]+" (€)",m[2],m[3]]); if(o&&r.length) return {t:"tbl",h:["","Antes","Depois"],r:[["Output (un.)",o[1],o[2]],...r]}; }
+  if(g==="trab"||g==="taktResp"){ const m=t.match(/operações (?:demoram |de )([\d, ]+?) s/); if(m){ const v=m[1].split(/,\s*/).map(num); return {t:"bars",h:"Tempo de cada operação",u:" s",r:v.map((x,i)=>["Op. "+(i+1),x])}; } }
+  if(g==="gargalo"||g==="atrav"){ const m=t.match(/etapas de ([\d, ]+?) min/); if(m){ const v=m[1].split(/,\s*/).map(num); return {t:"bars",h:"Tempo de cada etapa (em série)",u:" min",r:v.map((x,i)=>["Etapa "+(i+1),x])}; } }
+  if(g==="chicote"){ const m=t.match(/de (\d+) para (\d+).*?retalhista encomenda (\d+)%.*?distribuidor (\d+)%.*?fabricante produz (\d+)%/); if(m) return {t:"tbl",h:["Elo da cadeia","Variação"],r:[["Procura final",m[1]+" → "+m[2]],["Retalhista","+"+m[3]+"%"],["Distribuidor","+"+m[4]+"%"],["Fabricante","+"+m[5]+"%"]]}; }
+  return null;
+}
 function dataFig(q){
-  const f=q&&q.id&&FIGS[q.id]; if(!f) return "";
+  const f=q&&((q.id&&FIGS[q.id])||(q.gen&&genFig(q))); if(!f) return "";
   if(f.t==="tbl") return `<div class="scroll dfig"><table class="dtbl"><thead><tr>${f.h.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${f.r.map(r=>`<tr>${r.map((c,i)=>i?`<td class="n">${nf(c)}</td>`:`<td><b>${c}</b></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   if(f.t==="bars"){ const mx=Math.max(...f.r.map(r=>r[1]),f.line||0), tot=f.r.reduce((s,r)=>s+r[1],0);
     const lw=Math.max(3,...f.r.map(r=>String(r[0]).length))*0.62+1.2;
-    return `<div class="dfig dbars" style="--lw:${lw.toFixed(1)}em"><div class="dbh">${f.h}</div>${f.r.map(r=>`<div class="dbr"><b>${r[0]}</b><span class="dbt"><i style="width:${(r[1]/mx*100).toFixed(1)}%"></i>${f.line?`<em style="left:${(f.line/mx*100).toFixed(1)}%"></em>`:''}</span><span class="n">${nf(r[1])}${f.u}</span></div>`).join("")}${f.line?'':`<div class="dbr tot"><b>Total</b><span></span><span class="n">${nf(tot)}${f.u}</span></div>`}</div>`; }
+    return `<div class="dfig dbars" style="--lw:${lw.toFixed(1)}em"><div class="dbh">${f.h}</div>${f.r.map(r=>`<div class="dbr"><b>${r[0]}</b><span class="dbt"><i style="width:${(r[1]/mx*100).toFixed(1)}%"></i>${f.line?`<em style="left:${(f.line/mx*100).toFixed(1)}%"></em>`:''}</span><span class="n">${nf(r[1])}${f.u}</span></div>`).join("")}${f.line||f.nt?'':`<div class="dbr tot"><b>Total</b><span></span><span class="n">${nf(tot)}${f.u}</span></div>`}</div>`; }
   if(f.t==="mx"){ const L=["A","B","C"];
     return `<div class="scroll dfig"><table class="dtbl mxt"><thead><tr><th>${f.h}</th>${L.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${L.map(r=>`<tr><th>${r}</th>${L.map(c=>`<td>${f.c[c+","+r]?`<span class="mxi">${f.c[c+","+r]}</span>`:''}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`; }
   if(f.t==="tree"){ const pa=f.p==null?"p":Math.round(f.p*100)+"%", pb=f.p==null?"1 − p":Math.round((1-f.p)*100)+"%", la=f.la||"Procura alta", lb=f.lb||"Procura baixa";
@@ -2968,7 +2981,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795303429";
+const BUILD="1795303931";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
