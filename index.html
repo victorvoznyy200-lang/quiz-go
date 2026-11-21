@@ -2968,7 +2968,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795293211";
+const BUILD="1795303429";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
@@ -3667,12 +3667,22 @@ function revealAnswer(q){
 }
 function choose(k){
   const q=S.qs[S.i];
-  if(S.mode==="teste"){ q.pick=k; if(k===-1 && S.i<S.qs.length-1){ S.i++; } renderQ(); return; }
+  if(S.mode==="teste"){ q.pick=k; testMark(q,k); if(k===-1 && S.i<S.qs.length-1) setTimeout(()=>goQ(S.i+1),160); return; }
   if(q.pick!==null) return;
   q.pick=k; const ok=k>=0 && q.opts[k].ok; record(q,ok); ok?S.ok++:S.bad++;
   if(!ok && !q.again){ const pos=Math.min(S.qs.length, S.i+4); S.qs.splice(pos,0,cloneQ(q)); q.requeued=true; }
   revealAnswer(q); renderSide(); if(SB) ptsFx(q,S.lastAward);
   const fb=document.querySelector(".fb"); if(fb && fb.getBoundingClientRect().bottom>innerHeight) fb.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+// No teste de 30 min, escolher uma opção só atualiza a seleção (sem voltar a desenhar a página)
+function testMark(q,k){
+  const card=document.querySelector("#main .qcard"); if(!card){ renderQ(); return; }
+  card.querySelectorAll(".opt").forEach(b=>{ const on=+b.dataset.k===k; if(on&&!b.classList.contains("sel")&&b.animate&&!qReduce()) b.animate([{transform:"scale(.98)"},{transform:"scale(1.01)"},{transform:"none"}],{duration:220,easing:"ease-out"}); b.classList.toggle("sel",on); });
+  const ik=card.querySelector("#idk"); if(ik) ik.textContent=k===-1?"Marcada como «não sei»":"Não sei";
+  const total=S.qs.length, done=S.qs.filter(x=>x.pick!==null).length;
+  const pills=document.querySelectorAll(".qbar .pill"); pills.forEach(p=>{ if(/respondidas$/.test(p.textContent)) p.textContent=done+" respondidas"; });
+  const pr=document.querySelector("#main .prog i"); if(pr) pr.style.width=(done/total*100).toFixed(1)+"%";
+  const c=document.querySelector(`#main .cell[data-go="${S.i}"]`); if(c) c.classList.add("done");
 }
 function next(){ if(S.mode!=="teste" && S.qs[S.i].pick===null) return; if(S.i<S.qs.length-1) goQ(S.i+1); else finish(); }
 // ───────── Transição entre perguntas: só o cartão da pergunta se mexe (sai para um lado, entra do outro);
