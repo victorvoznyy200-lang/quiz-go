@@ -624,6 +624,24 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .prog{height:8px;border-radius:6px;background:var(--track);overflow:hidden}
 .prog i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--acc),var(--acc-2));box-shadow:0 0 14px var(--acc-glow);transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .qtext{font-size:1.2rem;font-weight:500;line-height:1.45}
+.simbar{position:sticky;top:10px;z-index:30;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;margin-bottom:14px;border-radius:18px;background:var(--base);border:1px solid var(--gb);box-shadow:0 10px 30px -14px rgba(0,0,0,.35)}
+.simbar .gbtn{margin-left:auto}
+.simc .ch{flex-wrap:wrap;row-gap:4px}
+.simbar .time.low{color:var(--bad)}
+.simq{padding:14px 0;border-bottom:1px solid var(--line)}.simq:last-child{border-bottom:0}
+.simn{font-weight:700;color:var(--acc);margin-right:4px}
+.simfmt .simpart{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.simfmt .simpart em{font-style:normal;font-weight:700;color:var(--acc)}
+.simdev{padding:12px 0}
+.simta{width:100%;box-sizing:border-box;min-height:170px;margin-top:10px;border:1px solid var(--gb);border-radius:14px;padding:12px 14px;font:inherit;font-size:1rem;line-height:1.5;background:var(--th);color:var(--ink);resize:vertical;outline:none}
+.simta:focus{box-shadow:0 0 0 3px var(--acc-soft),0 0 0 1px var(--acc)}
+.simmine,.simmodel{padding:12px 14px;border-radius:12px;margin:6px 0 12px;line-height:1.5}
+.simmine{background:var(--th)}.simmodel{background:var(--acc-soft)}
+.simchk{display:flex;flex-direction:column;gap:8px;margin-top:6px}.simchk label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}.simchk input{margin-top:3px;width:18px;height:18px;accent-color:var(--acc)}
+.simsum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.simsum>div{display:flex;flex-direction:column;gap:4px}.simsum b{font-size:1.3rem}
+.sxopts button.on{box-shadow:inset 0 0 0 2px var(--acc)}
+.sxt td.ok{color:var(--ok);font-weight:600}.sxt td.bad{color:var(--bad);font-weight:600}
+@media (max-width:640px){.simbar{flex-wrap:nowrap;gap:6px;padding:8px}.simbar>.pill:first-child{display:none}.simbar .gbtn{padding:8px 14px;min-height:0}.simsum{grid-template-columns:1fr}.simfmt .simpart{grid-template-columns:60px 1fr}.simfmt .simpart em{grid-column:2}}
 .dfig{margin:14px 0 4px}
 .dtbl{width:100%;border-collapse:collapse;font-size:.92rem}
 .dtbl th,.dtbl td{padding:8px 10px;border-bottom:1px solid rgba(127,127,127,.25);text-align:left}
@@ -2363,6 +2381,7 @@ const I = {
   calc:'<svg viewBox="0 0 24 24"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M8.5 6.5h7M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5v3.5M8.5 18h.01M12 18h.01"/></svg>',
   train:'<svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/></svg>',
   trophy:'<svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/></svg>',
+  exam:'<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h5"/></svg>',
   test:'<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>',
   rev:'<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></svg>',
   chart:'<svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 3 3 5-7"/></svg>',
@@ -2457,13 +2476,13 @@ function renderSide(){
   const nd=nDue(); const dark=document.documentElement.getAttribute("data-mode")==="dark";
   const cur=v=>view===v||(view==="q"&&S&&((v==="treino"&&S.mode==="treino")||(v==="teste"&&S.mode==="teste")||(v==="revisao"&&S.mode==="revisao")||(v==="estudar"&&S.mode==="estudo")||(v==="calc"&&S.mode==="calc")))||(v==="estudar"&&view==="cap");
   const it=(v,ic,l,b)=>`<button class="nav" data-view="${v}" ${cur(v)?'aria-current="page"':''}>${I[ic]}<span>${l}</span>${b?`<span class="badge">${b}</span>`:''}</button>`;
-  const NAVS=[["painel","home","O meu progresso"],["rank","trophy","Classificação"],["sai","star","Sai no teste"],["estudar","book","Estudar"],["calc","calc","Cálculos"],["treino","train","Treino"],["revisao","rev","Revisão"],["teste","test","Teste de 30 min"]], mc=NAVS.find(n=>cur(n[0]));
+  const NAVS=[["painel","home","O meu progresso"],["rank","trophy","Classificação"],["sai","star","Sai no teste"],["estudar","book","Estudar"],["calc","calc","Cálculos"],["treino","train","Treino"],["revisao","rev","Revisão"],["teste","test","Teste de 30 min"],["sim","exam","Simulado (90 min)"]], mc=NAVS.find(n=>cur(n[0]));
   const op=$("#navpill"); if(op&&op.classList.contains("on")){ const m=new DOMMatrix(getComputedStyle(op).transform); pillPos={x:m.m41,y:m.m42,w:op.offsetWidth,h:op.offsetHeight}; }
   $("#side").classList.remove("mopen");
   $("#side").innerHTML=`<div class="brand">${LOGO}<span>Operações</span></div>
     <button class="mnav" id="mnav" aria-expanded="false" aria-controls="navlist">${mc?I[mc[1]]:''}<span>${mc?mc[2]:'O meu perfil'}</span>${nd&&!(mc&&mc[0]==="revisao")?'<i class="mdot"></i>':''}<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="navlist" id="navlist"><div class="navlabel">Principal</div>${it("painel","home","O meu progresso")}${SB?it("rank","trophy","Classificação"):''}
-    <div class="navlabel">Praticar</div>${it("sai","star","Sai no teste","!")}${it("estudar","book","Estudar")}${it("calc","calc","Cálculos")}${it("treino","train","Treino")}${it("revisao","rev","Revisão",nd||"")}${it("teste","test","Teste de 30 min")}</div>
+    <div class="navlabel">Praticar</div>${it("sai","star","Sai no teste","!")}${it("estudar","book","Estudar")}${it("calc","calc","Cálculos")}${it("treino","train","Treino")}${it("revisao","rev","Revisão",nd||"")}${it("teste","test","Teste de 30 min")}${it("sim","exam","Simulado (90 min)")}</div>
     <button class="tgl" id="tgl" aria-label="Mudar para modo ${dark?'claro':'escuro'}">${dark?I.moon:I.sun}<span class="lb">Modo ${dark?'escuro':'claro'}</span><span class="sw"><i></i></span></button>
     <button class="me" id="me" title="O meu perfil" ${view==="perfil"?'aria-current="page"':''}><div class="avatar${cfg.emoji?' emo':''}">${uinit()}</div><div><b>${uname()}</b><small>Perfil e histórico de testes</small></div></button><span class="navpill" id="navpill"></span>`;
   movePill();
@@ -2488,10 +2507,163 @@ function movePill(){
   pillPos=to;
 }
 addEventListener("resize",()=>{pillPos=null;movePill();});
+// ───────── SIMULADO: formato do teste (8 escolhas múltiplas · 1 caso prático · 2 de desenvolvimento), 90 minutos
+const SIM_MIN=90;
+const DEV=[
+ {id:"falha",hint:1,q:"Descreva um caso em que a gestão de operações falhou. Identifique a empresa e explique com clareza porque é uma falha de operações (e não de marketing).",
+  m:"Em fevereiro de 2018, a KFC no Reino Unido trocou de operador logístico (passou para a DHL) e concentrou a distribuição num só armazém. A entrega de frango aos restaurantes falhou e centenas de restaurantes fecharam durante vários dias. É uma falha de operações porque o problema esteve na cadeia de abastecimento e na distribuição: capacidade de um só armazém, falta de redundância e uma mudança feita sem plano de contingência nem testes. O produto, o preço e a comunicação não tinham mudado; os clientes queriam comprar, mas a operação não entregou o que a marca prometia. A lição: mudanças na cadeia fazem-se de forma faseada, com testes piloto e um plano B.",
+  p:["Identifica a empresa e o contexto (quando, o que mudou)","Descreve a falha operacional concreta (capacidade, cadeia, stock, qualidade ou prazos)","Explica as consequências (clientes perdidos, custos, imagem)","Justifica porque é de operações e não de marketing (produto, preço e comunicação não eram o problema)","Tira uma lição ou diz o que devia ter sido feito"]},
+ {id:"cocri",hint:1,q:"Distinga cocriação de coprodução, dê exemplos e explique que impacto têm nas operações.",
+  m:"Cocriação é a criação conjunta de valor entre a empresa e o cliente (Prahalad & Ramaswamy, 2004); pode acontecer a montante, antes da produção: na ideia (LEGO Ideas), no design (Threadless, a comunidade vota os desenhos) ou no protótipo (Decathlon testa protótipos com a comunidade). Coprodução é o cliente participar na própria produção, contribuindo com trabalho e informação: a montagem dos móveis IKEA, o self-service, a caixa automática ou a marcação online. Cocriação = coprodução + valor em uso (Ranjan & Read, 2016). Nas operações, o cliente passa a ser um recurso do processo, com seis efeitos: mais variabilidade, o tempo do cliente conta na capacidade, a qualidade passa a ser partilhada, as interfaces têm de ser simples e robustas, os colaboradores passam a orientar o cliente e é preciso confiança e proteção de dados.",
+  p:["Define cocriação (criar valor em conjunto, antes ou durante)","Define coprodução (o cliente faz parte do trabalho de produção)","Dá exemplos certos de cada (ex.: LEGO Ideas, Threadless, Decathlon; IKEA, self-service)","Indica impactos nas operações (variabilidade, capacidade, qualidade partilhada…)","Conclui que o cliente passa a ser um recurso/input do processo"]},
+ {id:"origens",hint:1,q:"Um fabricante de uma marca líder, com cerca de 60% da capacidade ocupada, é convidado por um grande retalhista a produzir a marca própria desse retalhista. Que decisão comercial, de marketing e operacional estão em jogo?",
+  m:"Decisão comercial: aceitar ou não, e em que condições. A favor, volume e receita adicionais; contra, preço e margem mais baixos e maior dependência de um cliente com muito poder negocial (e, se recusar, o retalhista pode ir a outro produtor). Decisão de marketing: o risco de canibalização, porque um produto equivalente mais barato pode roubar vendas à marca da casa; também a relação com o retalhista, a presença na prateleira e a diferenciação a manter entre as duas marcas. Decisão operacional: quanta capacidade usar e com que riscos. A favor, diluir os custos fixos com os cerca de 40% de capacidade livre; a pesar, a capacidade efetiva, os picos de procura, as mudanças de série e garantir a qualidade de duas marcas na mesma linha. Conclusão: a decisão tem de pesar as três perspetivas.",
+  p:["Decisão comercial: aceitar, condições, preço/margem e dependência do cliente","Decisão de marketing: risco de canibalização e diferenciação das marcas","Decisão operacional: diluir custos fixos com a capacidade livre (cerca de 40%)","Riscos operacionais: picos, mudanças de série, qualidade de duas marcas na mesma linha","Conclusão que junta as três perspetivas"]},
+ {id:"vol",hint:1,q:"Volume baixo e volume elevado: o que muda nas operações? Dê exemplos.",
+  m:"O volume é um dos 4 V (volume, variedade, variação e visibilidade; Slack et al.). Com volume baixo (ex.: produção artesanal, alfaiataria por medida) há pouca repetição de tarefas, mais tempo por unidade, menos uniformização dos outputs e dos processos, mais personalização e variabilidade e, por isso, custos unitários mais altos. Com volume elevado (ex.: linha de montagem, lavandaria industrial) há muita repetição, padronização e especialização de pessoas e processos, mais eficiência e produtividade, menos variabilidade (menos erros, mais qualidade consistente) e custos unitários mais baixos pelas economias de escala, mas menos personalização. Nota crítica: volume baixo nem sempre quer dizer mais personalização ou custo mais alto; depende do processo e da tecnologia.",
+  p:["Enquadra nos 4 V","Volume baixo: pouca repetição, mais personalização, menos padronização","Volume baixo: custo unitário mais alto","Volume elevado: repetição, padronização, especialização, custo unitário mais baixo","Dá exemplos dos dois extremos"]},
+ {id:"vanva",hint:0,q:"Comente a afirmação: «Todas as atividades que não criam valor devem ser eliminadas.»",
+  m:"Concorda-se com o princípio, mas não por inteiro. Segundo Hines e Rich (1997) há três tipos de atividade: as que acrescentam valor (VA), que o cliente reconhece e paga, como montar o produto, e que se otimizam; as necessárias sem valor (NNVA), que não acrescentam valor mas são exigidas por lei, segurança ou pela tecnologia atual, como inspeções obrigatórias ou registos legais, e que se reduzem a médio prazo; e as sem valor (NVA), desperdício puro como esperas, transportes inúteis e retrabalho, que se eliminam. Eliminar tudo o que não cria valor sem distinguir as NNVA poria em causa a qualidade, a segurança e o cumprimento da lei.",
+  p:["Posição clara: concorda com o princípio, mas com uma ressalva","Explica VA com exemplo","Explica NNVA com exemplo (necessária, não se elimina já)","Explica NVA/desperdício com exemplo","Conclui que eliminar sem distinguir é um erro"]},
+ {id:"ihip",hint:0,q:"Quais são as diferenças entre operações de serviços e de bens, e que consequência tem o serviço não se armazenar?",
+  m:"Os serviços distinguem-se pelo IHIP: intangibilidade (difícil medir o output), heterogeneidade (varia de cliente para cliente), inseparabilidade (produz-se e consome-se ao mesmo tempo, com o cliente a participar) e perecibilidade (não se armazena). Acrescenta-se que o cliente fornece inputs ao processo (ele próprio, os seus bens ou a sua informação) e que muitas vezes se paga o acesso sem propriedade. A qualidade é mais difícil de especificar e de avaliar do que no fabrico. Como o serviço não se armazena, a capacidade não usada hoje perde-se: não se pode produzir para stock nos dias calmos para os dias de pico, por isso a gestão da capacidade e da procura (marcações, preços, turnos) é crítica.",
+  p:["Explica os 4 elementos do IHIP","Refere o cliente como input do processo","Refere a qualidade mais difícil de medir","Consequência: capacidade não usada perde-se, não há stock","Indica como se gere (capacidade/procura, marcações, turnos)"]},
+ {id:"chicote",hint:0,q:"O que é o efeito chicote, quais são as causas e como se pode atenuar?",
+  m:"O efeito chicote é a amplificação das variações da procura à medida que se sobe na cadeia de abastecimento: pequenas mudanças na procura final tornam-se grandes variações nas encomendas aos fornecedores (Lee, Padmanabhan & Whang, 1997). Tem quatro causas: previsões feitas a partir das encomendas recebidas e não da procura final; encomendas em lote; flutuação de preços e promoções; racionamento e escassez, que levam a inflacionar os pedidos. Atenua-se com três famílias de estratégias: partilha de informação (dados de ponto de venda, EDI, ERP); estratégias logísticas (gestão de inventário coordenada, políticas de compras); e estratégias operacionais (prazos mais curtos, entregas mais frequentes em lotes menores, JIT). O efeito cresce com o prazo de entrega e diminui com a partilha de informação.",
+  p:["Define o efeito (amplificação a montante)","Indica as 4 causas","Indica medidas de partilha de informação","Indica medidas logísticas ou operacionais (lotes menores, prazos curtos)","Liga cada medida à causa que ataca"]},
+ {id:"hosp",hint:0,q:"Comente: «Um gestor de hospital executa operações diferentes de um gestor de uma metalomecânica.»",
+  m:"É verdade em parte. No hospital o recurso transformado é sobretudo o cliente (o doente), a visibilidade é alta e a procura tem urgências imprevisíveis; na metalomecânica transformam-se sobretudo materiais, a visibilidade é baixa e a produção é planeada por encomenda ou por lotes. Muda o conteúdo técnico e o contexto. Mas as tarefas de gestão são as mesmas: gerir a capacidade, a qualidade, as pessoas, os custos e os prazos, desenhar processos e planear e controlar. Por isso as operações são diferentes no conteúdo, mas iguais na natureza da gestão.",
+  p:["Toma posição (verdade em parte)","Hospital: transforma clientes, visibilidade alta, procura incerta","Metalomecânica: transforma materiais, visibilidade baixa, produção planeada","O que é comum: capacidade, qualidade, pessoas, custos, prazos","Conclusão equilibrada"]}
+];
+let SIM=null, simTimer=null;
+const simKey=()=>KEY+"-sim";
+function simSave(){ try{ localStorage.setItem(simKey(),JSON.stringify(SIM)); }catch(e){} }
+function simLoad(){ try{ const s=JSON.parse(localStorage.getItem(simKey())||"null"); return s&&s.v===1?s:null; }catch(e){ return null; } }
+function simQs(sx){ const o=SX; SX=sx; const r=sxQs(); SX=o; return r; }
+function simPickMC(){
+  const W=["W2","W3","W3","W4","W5","W6","W7","W8"], used=new Set(), out=[];
+  const pool=STATIC.filter(q=>q.t==="t"&&testOk(q));
+  W.forEach(w=>{ const c=shuffle(pool.filter(q=>q.w===w&&!used.has(q.id))); const q=c[0]||shuffle(pool.filter(q=>!used.has(q.id)))[0]; if(q){ used.add(q.id); out.push(instantiate(q)); } });
+  return out;
+}
+function simNew(){
+  const sx=sxGen(); sx.ord=[0,1,2,3].map(()=>shuffle([0,1,2,3]));
+  const a=shuffle(DEV.filter(d=>d.hint))[0], b=shuffle(DEV.filter(d=>d.id!==a.id))[0];
+  SIM={v:1,start:Date.now(),end:Date.now()+SIM_MIN*60000,mc:simPickMC(),sx,dev:[a.id,b.id],txt:["",""],tick:[[],[]],done:false};
+  simSave();
+}
+function renderSim(){
+  clearInterval(simTimer); tipHide&&tipHide();
+  if(!SIM){ const s=simLoad(); if(s&&!s.done) SIM=s; else if(s&&s.done) SIM=s; }
+  if(SIM&&!SIM.done&&Date.now()>=SIM.end){ simFinish(true); return; }
+  if(SIM&&!SIM.done) return simExam();
+  const last=(store.sims||[]).slice(-1)[0];
+  $("#main").innerHTML=`<div class="top appear"><div><h1>Simulado</h1><p>Igual ao teste: 90 minutos, sem correção até entregares. Nota de 0 a 20.</p></div></div>
+  <section class="card appear simfmt">
+    <div class="simpart"><b>Parte I</b><span>8 perguntas de escolha múltipla</span><em>8 valores</em></div>
+    <div class="simpart"><b>Parte II</b><span>Caso prático: o armazém (ABC por faturação e por volume e conclusões)</span><em>6 valores</em></div>
+    <div class="simpart"><b>Parte III</b><span>2 perguntas de desenvolvimento, escritas por ti</span><em>6 valores</em></div>
+    <p class="sub">As escolhas múltiplas e o caso prático são corrigidos automaticamente. No desenvolvimento, no fim vês a resposta-modelo e marcas os pontos que cobriste. O teu progresso fica guardado se a página recarregar.</p>
+  </section>
+  ${SIM&&SIM.done?`<section class="card appear simc"><div class="ch"><span class="ct">Último simulado</span><span class="sub">${esc(SIM.dd||"")}</span></div><p>Nota: <b>${fmt(simNota(SIM),1)}</b> valores.</p><button class="gbtn" id="simSee">Ver a correção</button></section>`:''}
+  ${(store.sims||[]).length?`<section class="card appear simc"><span class="lbl">Simulados feitos</span><div class="chips">${store.sims.slice(-8).map(x=>`<span class="chip">${esc(x.d)}<small>${fmt(x.nota,1)}</small></span>`).join("")}</div></section>`:''}
+  <button class="vbtn appear" id="simGo">Começar simulado (90 min)</button>`;
+  $("#simGo").onclick=()=>{ simNew(); simExam(); window.scrollTo(0,0); };
+  const sv=$("#simSee"); if(sv) sv.onclick=()=>simResult();
+}
+function simLeft(){ return Math.max(0,SIM.end-Date.now()); }
+function simExam(){
+  const s=SIM, sx=s.sx, it=sx.it, qs=simQs(sx);
+  const mcHTML=s.mc.map((q,i)=>`<div class="simq" id="smq${i}"><p class="qtext"><span class="simn">${i+1}.</span> ${esc(q.q)}</p>${typeof dataFig==="function"?dataFig(q):''}<div class="opts">${q.opts.map((o,k)=>`<button class="opt ${q.pick===k?'sel':''}" data-mq="${i}" data-k="${k}"><span class="k">${LET[k]}</span><span class="t">${esc(o.txt)}</span></button>`).join("")}</div></div>`).join("");
+  const inp=(l,k)=>`<input class="sxin" inputmode="numeric" data-sin="${l+k}" value="${esc(String(sx.in[l+k]||''))}" aria-label="${k==='f'?'Faturação':'Volume'} de ${l}">`;
+  const seg=(l,k)=>`<span class="sxseg">${["A","B","C"].map(c=>`<button data-scl="${l+k}" data-c="${c}" class="${sx.cl[l+k]===c?'on':''}">${c}</button>`).join("")}</span>`;
+  $("#main").innerHTML=`<div class="simbar"><span class="pill">Simulado</span><span class="pill time" id="simT">${mmss(simLeft())}</span><span class="pill" id="simA"></span><button class="gbtn" id="simEnd">Entregar</button></div>
+  <section class="card appear simc"><div class="ch"><span class="ct">Parte I · Escolha múltipla</span><span class="sub">8 valores · 1 por pergunta</span></div>${mcHTML}</section>
+  <section class="card appear simc"><div class="ch"><span class="ct">Parte II · Caso prático</span><span class="sub">6 valores</span></div>
+    <p>Um armazém tem 7 produtos. Classifica-os pelo ABC por <b>faturação</b> (valor × utilização) e por <b>volume</b> (volume unitário × utilização), com 2 A, 3 B e 2 C em cada critério, e tira as conclusões operacionais. Faz a matriz e as percentagens no papel.</p>
+    <div class="scroll"><table class="sxt"><thead><tr><th>Prod.</th><th>Valor €</th><th>Vol. dm³</th><th>Util.</th><th>Faturação €</th><th>Volume dm³</th><th>Classe fat.</th><th>Classe vol.</th></tr></thead><tbody>
+    ${it.map(x=>`<tr><th>${x.l}</th><td>${x.v}</td><td>${x.d}</td><td>${x.u}</td><td>${inp(x.l,"f")}</td><td>${inp(x.l,"m")}</td><td>${seg(x.l,"f")}</td><td>${seg(x.l,"m")}</td></tr>`).join("")}</tbody></table></div>
+    ${qs.map((q,i)=>`<div class="sxq"><p><b>${i+1}.</b> ${esc(q.q)}</p><div class="sxopts">${sx.ord[i].map(k=>`<button data-ssq="${i}" data-k="${k}" class="${sx.ans[i]===k?'on':''}">${esc(q.o[k])}</button>`).join("")}</div></div>`).join("")}
+  </section>
+  <section class="card appear simc"><div class="ch"><span class="ct">Parte III · Desenvolvimento</span><span class="sub">6 valores · 3 por pergunta</span></div>
+    ${s.dev.map((id,i)=>{ const d=DEV.find(x=>x.id===id); return `<div class="simdev"><p class="qtext"><span class="simn">${i+1}.</span> ${esc(d.q)}</p><textarea class="simta" data-dv="${i}" rows="8" placeholder="Escreve aqui a tua resposta…">${esc(s.txt[i]||"")}</textarea></div>`; }).join("")}
+  </section>
+  <button class="vbtn" id="simEnd2">Entregar simulado</button>`;
+  $("#main").querySelectorAll(".card.appear").forEach((c,i)=>c.style.animationDelay=(i*.06)+"s");
+  const cnt=()=>{ const a=s.mc.filter(q=>q.pick!=null).length; const el=$("#simA"); if(el) el.textContent=`${a}/8 escolhas`; };
+  cnt();
+  document.querySelectorAll("[data-mq]").forEach(b=>b.onclick=()=>{ const q=s.mc[+b.dataset.mq], k=+b.dataset.k; q.pick=q.pick===k?null:k; b.parentNode.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel",q.pick===+o.dataset.k)); if(b.animate&&!qReduce()) b.animate([{transform:"scale(.98)"},{transform:"none"}],{duration:180}); cnt(); simSave(); });
+  document.querySelectorAll("[data-sin]").forEach(i=>i.oninput=()=>{ const v=i.value.replace(/[^\d]/g,""); if(v!==i.value) i.value=v; sx.in[i.dataset.sin]=v; simSave(); });
+  document.querySelectorAll("[data-scl]").forEach(b=>b.onclick=()=>{ sx.cl[b.dataset.scl]=b.dataset.c; b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); simSave(); });
+  document.querySelectorAll("[data-ssq]").forEach(b=>b.onclick=()=>{ sx.ans[+b.dataset.ssq]=+b.dataset.k; b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); simSave(); });
+  document.querySelectorAll("[data-dv]").forEach(t=>t.oninput=()=>{ s.txt[+t.dataset.dv]=t.value; clearTimeout(t._s); t._s=setTimeout(simSave,400); });
+  const end=b=>{ if(b.dataset.arm) return simFinish(false); b.dataset.arm=1; b.textContent="Tens a certeza? Entregar"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.arm; b.textContent=b.id==="simEnd"?"Entregar":"Entregar simulado"; } },4000); };
+  $("#simEnd").onclick=e=>end(e.currentTarget); $("#simEnd2").onclick=e=>end(e.currentTarget);
+  simTimer=setInterval(()=>{ const t=$("#simT"); if(!SIM||SIM.done||view!=="sim"){ clearInterval(simTimer); return; } const l=simLeft(); if(t){ t.textContent=mmss(l); t.classList.toggle("low",l<5*60000); } if(l<=0) simFinish(true); },1000);
+}
+function simParts(s){
+  const mc=s.mc.filter(q=>q.pick!=null&&q.opts[q.pick].ok).length;
+  const sx=s.sx, c=sx.it.reduce((a,x)=>a+(+sx.in[x.l+"f"]===x.f)+(+sx.in[x.l+"m"]===x.m),0), k=sx.it.reduce((a,x)=>a+(sx.cl[x.l+"f"]===x.cf)+(sx.cl[x.l+"m"]===x.cm),0), q=[0,1,2,3].filter(i=>sx.ans[i]===0).length;
+  const cp=c/14*1.5+k/14*1.5+q/4*3;
+  const dv=s.dev.reduce((a,id,i)=>{ const d=DEV.find(x=>x.id===id); return a+(s.tick[i]||[]).length/d.p.length*3; },0);
+  return {mc,c,k,q,cp,dv};
+}
+function simNota(s){ const p=simParts(s); return p.mc+p.cp+p.dv; }
+function simFinish(auto){
+  if(!SIM||SIM.done) return; clearInterval(simTimer);
+  SIM.done=true; SIM.used=Math.min(SIM_MIN*60000,Date.now()-SIM.start); const d=new Date(); SIM.dd=d.toLocaleDateString('pt-PT',{day:'2-digit',month:'2-digit'})+" "+d.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'});
+  SIM.t=Date.now(); simRecord(); simSave();
+  if(auto) toast("O tempo acabou. O simulado foi entregue.");
+  simResult(); window.scrollTo(0,0);
+  setTimeout(()=>{ updPending?updPop():checkUpdate(); },900);
+}
+function simRecord(){
+  const n=simNota(SIM), e={t:SIM.t,d:SIM.dd,nota:Math.round(n*10)/10};
+  store.sims=(store.sims||[]).filter(x=>x.t!==SIM.t).concat(e).slice(-15);
+  const r=(store.rounds||[]).find(x=>x.sim===SIM.t);
+  if(r){ r.ok=e.nota; } else { roundLog({m:"sim",ok:e.nota,n:20,p:null,sim:SIM.t}); }
+  save(); renderSide();
+}
+function simResult(){
+  view="sim"; const s=SIM, p=simParts(s), sx=s.sx, it=sx.it, qs=simQs(sx), nota=p.mc+p.cp+p.dv;
+  const srt=k=>[...it].sort((a,b)=>b[k]-a[k]);
+  const cell=(f,m)=>it.filter(x=>x.cf===f&&x.cm===m).map(x=>x.l).join(", ");
+  $("#main").innerHTML=`<div class="top appear"><div><h1 id="simNota">${fmt(nota,1)} valores</h1><p>Simulado de ${esc(s.dd||"")} · ${mmss(s.used||0)} usados${nota>=9.5?' · <b class="y">Positiva</b>':''}</p></div><div class="topr"><button class="gbtn" id="simBack">Novo simulado</button></div></div>
+  <section class="card appear simsum">
+    <div><span class="sub">Escolha múltipla</span><b>${fmt(p.mc,1)} / 8</b></div>
+    <div><span class="sub">Caso prático</span><b>${fmt(p.cp,1)} / 6</b></div>
+    <div><span class="sub">Desenvolvimento</span><b id="simDv">${fmt(p.dv,1)} / 6</b></div>
+  </section>
+  <section class="card appear simc"><div class="ch"><span class="ct">Parte III · Desenvolvimento</span><span class="sub">marca os pontos que a tua resposta cobre</span></div>
+    ${s.dev.map((id,i)=>{ const d=DEV.find(x=>x.id===id); return `<div class="simdev"><p class="qtext"><span class="simn">${i+1}.</span> ${esc(d.q)}</p>
+      <span class="lbl">A tua resposta</span><div class="simmine">${s.txt[i]?esc(s.txt[i]).replace(/\n/g,"<br>"):'<span class="faint">Não respondeste.</span>'}</div>
+      <span class="lbl">Resposta-modelo</span><div class="simmodel">${esc(d.m)}</div>
+      <span class="lbl">Pontos que dão cotação (3 valores)</span><div class="simchk">${d.p.map((t,j)=>`<label><input type="checkbox" data-tk="${i}" value="${j}" ${(s.tick[i]||[]).includes(j)?'checked':''}> ${esc(t)}</label>`).join("")}</div></div>`; }).join("")}
+  </section>
+  <section class="card appear simc"><div class="ch"><span class="ct">Parte II · Caso prático</span><span class="sub">contas ${p.c}/14 · classes ${p.k}/14 · conclusões ${p.q}/4</span></div>
+    <div class="scroll"><table class="sxt"><thead><tr><th>Prod.</th><th>Faturação</th><th>Tu</th><th>Volume</th><th>Tu</th><th>Classe fat.</th><th>Classe vol.</th></tr></thead><tbody>
+    ${it.map(x=>{ const okf=+sx.in[x.l+"f"]===x.f, okm=+sx.in[x.l+"m"]===x.m, ocf=sx.cl[x.l+"f"]===x.cf, ocm=sx.cl[x.l+"m"]===x.cm;
+      return `<tr><th>${x.l}</th><td>${fmt(x.f)}</td><td class="${okf?'ok':'bad'}">${sx.in[x.l+"f"]||'—'}</td><td>${fmt(x.m)}</td><td class="${okm?'ok':'bad'}">${sx.in[x.l+"m"]||'—'}</td><td class="${ocf?'ok':'bad'}">${x.cf}${ocf?'':` <small>(tu: ${sx.cl[x.l+"f"]||'—'})</small>`}</td><td class="${ocm?'ok':'bad'}">${x.cm}${ocm?'':` <small>(tu: ${sx.cl[x.l+"m"]||'—'})</small>`}</td></tr>`; }).join("")}
+    <tr class="tot"><th>Total</th><td>${fmt(sx.tf)}</td><td></td><td>${fmt(sx.tm)}</td><td></td><td></td><td></td></tr></tbody></table></div>
+    <p class="sub">Faturação por ordem: ${srt("f").map(x=>`${x.l} ${fmt(x.f/sx.tf*100,1)}%`).join(" · ")}<br>Volume por ordem: ${srt("m").map(x=>`${x.l} ${fmt(x.m/sx.tm*100,1)}%`).join(" · ")}</p>
+    <span class="lbl">Matriz (volume nas linhas, faturação nas colunas)</span>
+    <div class="mxg"><div class="mxk">Volume ↓<br>Faturação →</div>${["A","B","C"].map(c=>`<div class="mxh">${c}</div>`).join("")}${["A","B","C"].map(m=>`<div class="mxh">${m}</div>${["A","B","C"].map(f=>{const v=cell(f,m);return `<div class="mxv${v?' on':''}">${v}</div>`;}).join("")}`).join("")}</div>
+    ${qs.map((q,i)=>{ const a=sx.ans[i]; return `<div class="sxq"><p><b>${i+1}.</b> ${esc(q.q)}</p><p style="color:var(${a===0?"--ok":"--bad"})">${a===0?'✓ Certo':'✗ '+(a==null?'Não respondeste':'Escolheste «'+esc(q.o[a])+'»')}. Certa: <b>${esc(q.o[0])}</b>.</p><p class="sub">${esc(q.e)}</p></div>`; }).join("")}
+  </section>
+  <section class="card appear simc"><div class="ch"><span class="ct">Parte I · Escolha múltipla</span><span class="sub">${p.mc} de 8 certas</span></div>
+    ${s.mc.map((q,i)=>{ const r=q.opts.findIndex(o=>o.ok), ok=q.pick===r; return `<div class="rv"><span class="sub">${i+1}. ${q.w}</span><b>${esc(q.q)}</b>${q.pick==null?'<span class="y small">Não respondeste.</span>':ok?'<span class="small" style="color:var(--ok)">✓ Certo</span>':`<span class="small" style="color:var(--bad)">✗ Escolheste: ${esc(q.opts[q.pick].txt)}</span>`}<span class="small">Certa: <b>${esc(q.opts[r].txt)}</b></span><span class="sub">${qe(q)}</span></div>`; }).join("")}
+  </section>`;
+  $("#main").querySelectorAll(".card.appear").forEach((c,i)=>c.style.animationDelay=(i*.05)+"s");
+  document.querySelectorAll("[data-tk]").forEach(c=>c.onchange=()=>{ const i=+c.dataset.tk; const set=new Set(s.tick[i]||[]); c.checked?set.add(+c.value):set.delete(+c.value); s.tick[i]=[...set]; simRecord(); simSave();
+    const q=simParts(s), n=q.mc+q.cp+q.dv; $("#simDv").textContent=fmt(q.dv,1)+" / 6"; $("#simNota").textContent=fmt(n,1)+" valores"; });
+  $("#simBack").onclick=()=>{ SIM=null; try{localStorage.removeItem(simKey())}catch(e){} renderSim(); window.scrollTo(0,0); };
+}
+
 function go(v){
+  if(view==="sim" && SIM && !SIM.done && v!=="sim"){ const b=document.querySelector(`[data-view="${v}"]`); if(b&&!b.dataset.arm){ b.dataset.arm=1; b.querySelector("span").textContent="Sair do simulado?"; return; } }
   if(view==="q" && S && S.mode==="teste" && !S.done && v!=="q"){ const b=document.querySelector(`[data-view="${v}"]`); if(!b.dataset.arm){ b.dataset.arm=1; b.querySelector("span").textContent="Sair do teste?"; return; } }
-  clearInterval(timer); S=null; view=v; renderSide();
-  if(v==="painel") renderPainel(); else if(v==="treino") renderTreino(); else if(v==="teste") renderTesteIntro(); else if(v==="revisao") renderRevisaoIntro(); else if(v==="estudar") renderEstudar(); else if(v==="perfil") renderPerfil(); else if(v==="calc") renderCalc(); else if(v==="rank") renderRank(); else if(v==="sai") renderSai();
+  clearInterval(timer); clearInterval(simTimer); S=null; view=v; renderSide();
+  if(v==="painel") renderPainel(); else if(v==="treino") renderTreino(); else if(v==="teste") renderTesteIntro(); else if(v==="revisao") renderRevisaoIntro(); else if(v==="estudar") renderEstudar(); else if(v==="perfil") renderPerfil(); else if(v==="calc") renderCalc(); else if(v==="rank") renderRank(); else if(v==="sai") renderSai(); else if(v==="sim") renderSim();
   window.scrollTo(0,0);
 }
 let toastT=null;
@@ -2981,13 +3153,13 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795303931";
+const BUILD="1795304869";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
 function updPop(){
   if(!updPending||document.getElementById("updbox")) return;
-  if((view==="q"&&S&&!S.done)||document.getElementById("namebox")){ return; }
+  if((view==="q"&&S&&!S.done)||(view==="sim"&&SIM&&!SIM.done)||document.getElementById("namebox")){ return; }
   const d=document.createElement("div"); d.id="updbox"; d.className="nameov"; d.setAttribute("role","dialog"); d.setAttribute("aria-modal","true"); d.setAttribute("aria-labelledby","updT");
   d.innerHTML=`<div class="namecard"><div style="font-size:2.4rem;line-height:1">🔄</div><h2 id="updT">Há uma atualização</h2><p>O quiz foi atualizado e é preciso reiniciar a página.<br><b>Nenhum progresso será apagado.</b></p><div class="namebtns"><button class="gbtn" id="updGo" style="min-width:160px;justify-content:center">Reiniciar</button></div></div>`;
   document.body.appendChild(d);
@@ -3180,7 +3352,7 @@ function rkDraw(first){
   });
 }
 // janela com as estatísticas de uma pessoa da classificação
-const RD_M={treino:"Treino",teste:"Teste de 30 min",revisao:"Revisão",estudo:"Estudar",calc:"Cálculos",sai:"Sai no teste (armazém)"};
+const RD_M={treino:"Treino",teste:"Teste de 30 min",revisao:"Revisão",estudo:"Estudar",calc:"Cálculos",sai:"Sai no teste (armazém)",sim:"Simulado (90 min)"};
 function rkUser(uid){
   if(!sbBoard||document.getElementById("namebox")) return; const r=sbBoard.find(x=>x.user_id===uid); if(!r) return;
   const byPts=[...sbBoard].sort((a,b)=>b.points-a.points), pos=byPts.findIndex(x=>x.points===r.points)+1, me=sbUser&&sbUser.id===uid;
