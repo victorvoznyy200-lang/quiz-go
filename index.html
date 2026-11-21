@@ -626,6 +626,7 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .qtext{font-size:1.2rem;font-weight:500;line-height:1.45}
 .simbar{position:sticky;top:10px;z-index:30;display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;margin-bottom:14px;border-radius:18px;background:var(--base);border:1px solid var(--gb);box-shadow:0 10px 30px -14px rgba(0,0,0,.35)}
 .simbar .gbtn{margin-left:auto}
+.simrev{border:1px solid #e39b00;color:#c98500;background:rgba(227,155,0,.12);font:inherit;font-weight:700;cursor:pointer}.simq,.simdev{border-radius:12px}
 .simc .ch{flex-wrap:wrap;row-gap:4px}
 .simbar .time.low{color:var(--bad)}
 .simq{padding:14px 0;border-bottom:1px solid var(--line)}.simq:last-child{border-bottom:0}
@@ -721,6 +722,13 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 @media (max-width:560px){.cells{grid-template-columns:repeat(6,minmax(0,1fr))}}
 .cell{border:1px solid var(--gb);background:var(--g2);border-radius:10px;min-height:38px;font-weight:600;font-size:.88rem;font-variant-numeric:tabular-nums}
 .cell.done{background:var(--acc-soft);color:var(--acc)} .cell.cur{box-shadow:0 0 0 2px var(--acc)}
+.qacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.flagb{display:inline-flex;align-items:center;gap:6px;border:1px dashed var(--faint);background:transparent;border-radius:12px;padding:9px 14px;font-weight:600;font-size:.88rem;color:var(--muted);min-height:40px;transition:background .2s,color .2s,border-color .2s}
+.flagb .fli{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.flagb.on{border-style:solid;border-color:#e39b00;color:#c98500;background:rgba(227,155,0,.12)}.flagb.on .fli{fill:currentColor}
+.cell{position:relative}.cell.flag::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#e39b00;box-shadow:0 0 0 2px var(--base)}
+.cellacts{display:flex;gap:14px;flex-wrap:wrap}.ch:has(.cellacts){flex-wrap:wrap;row-gap:6px}
+.simflag{margin-top:10px}
 .rv{border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:5px;background:var(--g2);border:1px solid var(--gb)}
 .rv .y{color:var(--bad)} .rv .r{color:var(--ok);font-weight:600}
 .small{font-size:.85rem}.muted{color:var(--muted)}
@@ -2574,10 +2582,10 @@ function renderSim(){
 function simLeft(){ return Math.max(0,SIM.end-Date.now()); }
 function simExam(){
   const s=SIM, sx=s.sx, it=sx.it, qs=simQs(sx);
-  const mcHTML=s.mc.map((q,i)=>`<div class="simq" id="smq${i}"><p class="qtext"><span class="simn">${i+1}.</span> ${esc(q.q)}</p>${typeof dataFig==="function"?dataFig(q):''}<div class="opts">${q.opts.map((o,k)=>`<button class="opt ${q.pick===k?'sel':''}" data-mq="${i}" data-k="${k}"><span class="k">${LET[k]}</span><span class="t">${esc(o.txt)}</span></button>`).join("")}</div></div>`).join("");
+  const mcHTML=s.mc.map((q,i)=>`<div class="simq" id="smq${i}"><p class="qtext"><span class="simn">${i+1}.</span> ${esc(q.q)}</p>${typeof dataFig==="function"?dataFig(q):''}<div class="opts">${q.opts.map((o,k)=>`<button class="opt ${q.pick===k?'sel':''}" data-mq="${i}" data-k="${k}"><span class="k">${LET[k]}</span><span class="t">${esc(o.txt)}</span></button>`).join("")}</div><button class="flagb simflag ${SIM.fl&&SIM.fl["mc"+i]?"on":""}" data-flag="mc${i}"><svg viewBox="0 0 24 24" class="fli"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg><span>${SIM.fl&&SIM.fl["mc"+i]?"Marcada para rever":"Marcar para rever"}</span></button></div>`).join("");
   const inp=(l,k)=>`<input class="sxin" inputmode="numeric" data-sin="${l+k}" value="${esc(String(sx.in[l+k]||''))}" aria-label="${k==='f'?'Faturação':'Volume'} de ${l}">`;
   const seg=(l,k)=>`<span class="sxseg">${["A","B","C"].map(c=>`<button data-scl="${l+k}" data-c="${c}" class="${sx.cl[l+k]===c?'on':''}">${c}</button>`).join("")}</span>`;
-  $("#main").innerHTML=`<div class="simbar"><span class="pill">Simulado</span><span class="pill time" id="simT">${mmss(simLeft())}</span><span class="pill" id="simA"></span><button class="gbtn" id="simEnd">Entregar</button></div>
+  $("#main").innerHTML=`<div class="simbar"><span class="pill">Simulado</span><span class="pill time" id="simT">${mmss(simLeft())}</span><span class="pill" id="simA"></span><button class="pill simrev" id="simRev" hidden></button><button class="gbtn" id="simEnd">Entregar</button></div>
   <section class="card appear simc"><div class="ch"><span class="ct">Parte I · Escolha múltipla</span><span class="sub">8 valores · 1 por pergunta</span></div>${mcHTML}</section>
   <section class="card appear simc"><div class="ch"><span class="ct">Parte II · Caso prático</span><span class="sub">6 valores</span></div>
     <p>Um armazém tem 7 produtos. Classifica-os pelo ABC por <b>faturação</b> (valor × utilização) e por <b>volume</b> (volume unitário × utilização), com 2 A, 3 B e 2 C em cada critério, e tira as conclusões operacionais. Faz a matriz e as percentagens no papel.</p>
@@ -2586,7 +2594,7 @@ function simExam(){
     ${qs.map((q,i)=>`<div class="sxq"><p><b>${i+1}.</b> ${esc(q.q)}</p><div class="sxopts">${sx.ord[i].map(k=>`<button data-ssq="${i}" data-k="${k}" class="${sx.ans[i]===k?'on':''}">${esc(q.o[k])}</button>`).join("")}</div></div>`).join("")}
   </section>
   <section class="card appear simc"><div class="ch"><span class="ct">Parte III · Desenvolvimento</span><span class="sub">6 valores · 3 por pergunta</span></div>
-    ${s.dev.map((id,i)=>{ const d=DEV.find(x=>x.id===id); return `<div class="simdev"><p class="qtext"><span class="simn">${i+1}.</span> ${esc(d.q)}</p><textarea class="simta" data-dv="${i}" rows="8" placeholder="Escreve aqui a tua resposta…">${esc(s.txt[i]||"")}</textarea></div>`; }).join("")}
+    ${s.dev.map((id,i)=>{ const d=DEV.find(x=>x.id===id); return `<div class="simdev" id="sdv${i}"><p class="qtext"><span class="simn">${i+1}.</span> ${esc(d.q)}</p><textarea class="simta" data-dv="${i}" rows="8" placeholder="Escreve aqui a tua resposta…">${esc(s.txt[i]||"")}</textarea><button class="flagb simflag ${SIM.fl&&SIM.fl["dv"+i]?"on":""}" data-flag="dv${i}"><svg viewBox="0 0 24 24" class="fli"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg><span>${SIM.fl&&SIM.fl["dv"+i]?"Marcada para rever":"Marcar para rever"}</span></button></div>`; }).join("")}
   </section>
   <button class="vbtn" id="simEnd2">Entregar simulado</button>`;
   $("#main").querySelectorAll(".card.appear").forEach((c,i)=>c.style.animationDelay=(i*.06)+"s");
@@ -2597,8 +2605,12 @@ function simExam(){
   document.querySelectorAll("[data-scl]").forEach(b=>b.onclick=()=>{ sx.cl[b.dataset.scl]=b.dataset.c; b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); simSave(); });
   document.querySelectorAll("[data-ssq]").forEach(b=>b.onclick=()=>{ sx.ans[+b.dataset.ssq]=+b.dataset.k; b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); simSave(); });
   document.querySelectorAll("[data-dv]").forEach(t=>t.oninput=()=>{ s.txt[+t.dataset.dv]=t.value; clearTimeout(t._s); t._s=setTimeout(simSave,400); });
-  const end=b=>{ if(b.dataset.arm) return simFinish(false); b.dataset.arm=1; b.textContent="Tens a certeza? Entregar"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.arm; b.textContent=b.id==="simEnd"?"Entregar":"Entregar simulado"; } },4000); };
+  const end=b=>{ if(b.dataset.arm) return simFinish(false); b.dataset.arm=1; const nf=Object.values(s.fl||{}).filter(Boolean).length; b.textContent=nf?`Tens ${nf} marcadas. Entregar?`:"Tens a certeza? Entregar"; setTimeout(()=>{ if(b.isConnected){ delete b.dataset.arm; b.textContent=b.id==="simEnd"?"Entregar":"Entregar simulado"; } },4000); };
   $("#simEnd").onclick=e=>end(e.currentTarget); $("#simEnd2").onclick=e=>end(e.currentTarget);
+  const revUp=()=>{ const k=Object.keys(s.fl||{}).filter(x=>s.fl[x]), b=$("#simRev"); if(!b) return; b.hidden=!k.length; b.textContent=`Rever (${k.length})`; };
+  document.querySelectorAll("[data-flag]").forEach(b=>b.onclick=()=>{ s.fl=s.fl||{}; const k=b.dataset.flag; s.fl[k]=!s.fl[k]; b.classList.toggle("on",s.fl[k]); b.querySelector("span").textContent=s.fl[k]?"Marcada para rever":"Marcar para rever"; if(b.animate&&!qReduce()) b.animate([{transform:"scale(.94)"},{transform:"scale(1.04)"},{transform:"none"}],{duration:260,easing:"ease-out"}); revUp(); simSave(); });
+  let revI=-1; $("#simRev").onclick=()=>{ const order=[...s.mc.map((_,i)=>"mc"+i),...s.dev.map((_,i)=>"dv"+i)].filter(k=>s.fl&&s.fl[k]); if(!order.length) return; revI=(revI+1)%order.length; const k=order[revI], el=document.getElementById(k.startsWith("mc")?"smq"+k.slice(2):"sdv"+k.slice(2)); if(el){ el.scrollIntoView({behavior:qReduce()?"auto":"smooth",block:"center"}); if(el.animate&&!qReduce()) el.animate([{backgroundColor:"rgba(227,155,0,.16)"},{backgroundColor:"transparent"}],{duration:1200,easing:"ease-out"}); } };
+  revUp();
   simTimer=setInterval(()=>{ const t=$("#simT"); if(!SIM||SIM.done||view!=="sim"){ clearInterval(simTimer); return; } const l=simLeft(); if(t){ t.textContent=mmss(l); t.classList.toggle("low",l<5*60000); } if(l<=0) simFinish(true); },1000);
 }
 function simParts(s){
@@ -3153,7 +3165,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795304869";
+const BUILD="1795305203";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
@@ -3796,12 +3808,12 @@ function renderQ(dir){
     ${fluxFig(q,reveal)}${pertFig(q)}${dataFig(q)}
     <div class="opts">${q.opts.map((o,k)=>{let c="opt"; if(reveal){ if(o.ok) c+=" right"; else if(q.pick===k) c+=" wrong"; else c+=" dim"; } else if(q.pick===k) c+=" sel";
       return `<button class="${c}" data-k="${k}" ${reveal?'disabled':''}><span class="k">${LET[k]}</span><span class="t">${esc(o.txt)}</span></button>`;}).join("")}</div>
-    ${!reveal?`<button class="idk" id="idk">${test&&q.pick===-1?'Marcada como «não sei»':'Não sei'}</button>`:''}
+    ${!reveal?`<div class="qacts"><button class="idk" id="idk">${test&&q.pick===-1?'Marcada como «não sei»':'Não sei'}</button>${test?`<button class="flagb ${q.flag?'on':''}" id="flagQ" aria-pressed="${q.flag?'true':'false'}"><svg viewBox="0 0 24 24" class="fli"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg><span>${q.flag?'Marcada para rever':'Marcar para rever'}</span></button>`:''}</div>`:''}
     ${fb}
   </section>
   <div class="navq">${test?`<button class="gbtn" id="prev" ${S.i===0?'disabled':''}>Anterior</button>`:''}
     ${test?(S.i<total-1?`<button class="vbtn" id="next">Seguinte</button>`:`<button class="vbtn" id="finish">Entregar teste</button>`):`<button class="vbtn" id="next" ${answered?'':'disabled'}>${S.i<total-1?'Seguinte':'Ver resultado'}</button>`}</div>
-  ${test?`<section class="card"><div class="ch"><span class="lbl">Ir para a pergunta</span>${S.i<total-1?'<button class="linkbtn" id="finish2">Entregar já</button>':''}</div><div class="cells">${S.qs.map((x,k)=>`<button class="cell ${x.pick!==null?'done':''} ${k===S.i?'cur':''}" data-go="${k}">${k+1}</button>`).join("")}</div></section>`:''}`;
+  ${test?`<section class="card"><div class="ch"><span class="lbl">Ir para a pergunta</span><span class="cellacts">${S.qs.some(x=>x.flag)?`<button class="linkbtn" id="revF">Rever marcadas (${S.qs.filter(x=>x.flag).length})</button>`:''}${S.i<total-1?'<button class="linkbtn" id="finish2">Entregar já</button>':''}</span></div><div class="cells">${S.qs.map((x,k)=>`<button class="cell ${x.pick!==null?'done':''} ${x.flag?'flag':''} ${k===S.i?'cur':''}" data-go="${k}">${k+1}</button>`).join("")}</div></section>`:''}`;
   if(dir) qEnter(dir);
   const nb=document.querySelector("#main .prog i");
   if(nb && fromW && fromW!==prog+"%"){ nb.style.transition="none"; nb.style.width=fromW; void nb.offsetWidth; nb.style.transition=""; requestAnimationFrame(()=>{nb.style.width=prog+"%";}); }
@@ -3810,8 +3822,20 @@ function renderQ(dir){
   const nx=$("#next"); if(nx) nx.onclick=next;
   const pv=$("#prev"); if(pv) pv.onclick=()=>goQ(S.i-1);
   const fi=$("#finish"); if(fi) fi.onclick=finish;
-  const f2=$("#finish2"); if(f2) f2.onclick=()=>{ if(f2.dataset.arm) finish(); else {f2.dataset.arm=1; f2.textContent=`Entregar com ${total-done} por responder?`;} };
+  const f2=$("#finish2"); if(f2) f2.onclick=()=>{ if(f2.dataset.arm) finish(); else {f2.dataset.arm=1; const nf=S.qs.filter(x=>x.flag).length; f2.textContent=`Entregar com ${total-done} por responder${nf?` e ${nf} marcadas`:''}?`;} };
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>goQ(+b.dataset.go));
+  const fq=$("#flagQ"); if(fq) fq.onclick=()=>{ q.flag=!q.flag; fq.classList.toggle("on",q.flag); fq.setAttribute("aria-pressed",q.flag?"true":"false"); fq.querySelector("span").textContent=q.flag?"Marcada para rever":"Marcar para rever";
+    if(fq.animate&&!qReduce()) fq.animate([{transform:"scale(.94)"},{transform:"scale(1.04)"},{transform:"none"}],{duration:260,easing:"ease-out"});
+    const c=document.querySelector(`#main .cell[data-go="${S.i}"]`); if(c) c.classList.toggle("flag",q.flag); flagRevBtn(); };
+  flagRevBtn();
+}
+// botão «Rever marcadas»: vai para a próxima pergunta marcada (dá a volta ao fim)
+function flagRevBtn(){
+  const box=document.querySelector("#main .cellacts"); if(!box||!S) return; const n=S.qs.filter(x=>x.flag).length; let b=$("#revF");
+  if(!n){ if(b) b.remove(); return; }
+  if(!b){ box.insertAdjacentHTML("afterbegin",'<button class="linkbtn" id="revF"></button>'); b=$("#revF"); }
+  b.textContent=`Rever marcadas (${n})`;
+  b.onclick=()=>{ const L=S.qs.length; for(let d=1;d<=L;d++){ const j=(S.i+d)%L; if(S.qs[j].flag){ if(j!==S.i) goQ(j); return; } } };
 }
 function record(q, ok){
   store.n++; if(ok) store.ok++;
