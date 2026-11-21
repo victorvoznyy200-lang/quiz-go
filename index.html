@@ -2393,7 +2393,7 @@ const FIGS=(()=>{
   const T=(a,b,c,d,p,la,lb)=>({t:"tree",o:[{n:"Ampliar",i:a,a:b,b:c},{n:"Manter",i:0,a:d[0],b:d[1]}],p,la,lb});
   const P1={t:"bars",h:"Consumo anual em valor",u:" €",r:[["P1",600],["P2",200],["P3",90],["P4",60],["P5",50]]};
   const CL={t:"tbl",h:["Cliente","Encomendas","Entregas"],r:[["X",50,50],["Y",200,20]]};
-  const MX={t:"mx",h:"Faturação ↓ · Volume →",c:{"A,B":"N","C,A":"K","B,B":"M","B,C":"Q"}};
+  const MX={t:"mx",h:"Volume ↓ · Faturação →",c:{"A,B":"N","C,A":"K","B,B":"M","B,C":"Q"}};
   const EOQ={t:"tbl",h:["Dado","Valor"],r:[["Procura anual","12 000 unidades"],["Custo por encomenda","50 €"],["Custo de posse","3 € por unidade e ano"]]};
   return {
   s111:{t:"tree",o:[{n:"Ampliar",i:100,a:320,b:120}],p:.6},
@@ -2426,7 +2426,7 @@ function dataFig(q){
     const lw=Math.max(3,...f.r.map(r=>String(r[0]).length))*0.62+1.2;
     return `<div class="dfig dbars" style="--lw:${lw.toFixed(1)}em"><div class="dbh">${f.h}</div>${f.r.map(r=>`<div class="dbr"><b>${r[0]}</b><span class="dbt"><i style="width:${(r[1]/mx*100).toFixed(1)}%"></i>${f.line?`<em style="left:${(f.line/mx*100).toFixed(1)}%"></em>`:''}</span><span class="n">${nf(r[1])}${f.u}</span></div>`).join("")}${f.line?'':`<div class="dbr tot"><b>Total</b><span></span><span class="n">${nf(tot)}${f.u}</span></div>`}</div>`; }
   if(f.t==="mx"){ const L=["A","B","C"];
-    return `<div class="scroll dfig"><table class="dtbl mxt"><thead><tr><th>${f.h}</th>${L.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${L.map(r=>`<tr><th>${r}</th>${L.map(c=>`<td>${f.c[r+","+c]?`<span class="mxi">${f.c[r+","+c]}</span>`:''}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`; }
+    return `<div class="scroll dfig"><table class="dtbl mxt"><thead><tr><th>${f.h}</th>${L.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${L.map(r=>`<tr><th>${r}</th>${L.map(c=>`<td>${f.c[c+","+r]?`<span class="mxi">${f.c[c+","+r]}</span>`:''}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`; }
   if(f.t==="tree"){ const pa=f.p==null?"p":Math.round(f.p*100)+"%", pb=f.p==null?"1 − p":Math.round((1-f.p)*100)+"%", la=f.la||"Procura alta", lb=f.lb||"Procura baixa";
     return `<div class="dfig dtree"><div class="dnode">Decisão</div><div class="dopts">${f.o.map(o=>`<div class="dopt"><div class="dhead"><b>${o.n}</b>${o.i?`<span class="inv">investimento ${o.i}</span>`:o.v===undefined?'<span class="inv">sem investimento</span>':''}</div>${o.v!==undefined?`<div class="dout"><span>Resultado certo</span><span class="n">${o.v}</span></div>`:`<div class="dout"><span>${la} <i>${pa}</i></span><span class="n">${o.a}</span></div><div class="dout"><span>${lb} <i>${pb}</i></span><span class="n">${o.b}</span></div>`}</div>`).join("")}</div><div class="dunit">valores em mil €</div></div>`; }
   return "";
@@ -2720,11 +2720,11 @@ const SAI_LESSON=`
 </tbody></table></div>
 <p><b>Regra:</b> A = 20% das referências → 80% do valor · B = 30% → 15% · C = 50% → 5%. Ordena do maior para o menor. Com 7 artigos, a aula ficou com <b>2 A, 3 B e 2 C</b>.</p>
 <h3>2. A matriz cruzada (é aqui que estão as conclusões)</h3>
-<p>O mesmo artigo pode ser <b>A num critério e C no outro</b>. Cruza as duas classes numa matriz 3×3. Em cada célula, a decisão é diferente:</p>
-<div class="scroll"><table class="mx3"><thead><tr><th>Faturação ↓ · Volume →</th><th>A (muito espaço)</th><th>B</th><th>C (pouco espaço)</th></tr></thead><tbody>
-<tr><th>A (muito capital)</th><td>Controlo apertado <b>e</b> espaço com localização estudada</td><td>Controlo apertado; espaço normal</td><td><b>Controlo apertado do stock</b>, pouco espaço (N e O na aula)</td></tr>
-<tr><th>B</th><td>Atenção ao espaço; controlo intermédio</td><td>Gestão intermédia</td><td>Controlo intermédio; pouco espaço</td></tr>
-<tr><th>C (pouco capital)</th><td><b>Espaço e localização estudada, pouco capital</b> (K e L na aula)</td><td>Atenção ao espaço; controlo simples</td><td>Gestão simples, contagens pouco frequentes</td></tr>
+<p>O mesmo artigo pode ser <b>A num critério e C no outro</b>. Cruza as duas classes numa matriz 3×3: <b>volume nas linhas</b> e <b>faturação nas colunas</b>. Em cada célula, a decisão é diferente:</p>
+<div class="scroll"><table class="mx3"><thead><tr><th>Volume ↓ · Faturação →</th><th>A (muito capital)</th><th>B</th><th>C (pouco capital)</th></tr></thead><tbody>
+<tr><th>A (muito espaço)</th><td>Controlo apertado <b>e</b> espaço com localização estudada</td><td>Atenção ao espaço; controlo intermédio</td><td><b>Espaço e localização estudada, pouco capital</b> (K e L na aula)</td></tr>
+<tr><th>B</th><td>Controlo apertado; espaço normal (N na aula)</td><td>Gestão intermédia (M e P na aula)</td><td>Atenção ao espaço; controlo simples</td></tr>
+<tr><th>C (pouco espaço)</th><td><b>Controlo apertado do stock</b>, pouco espaço (O na aula)</td><td>Controlo intermédio; pouco espaço (Q na aula)</td><td>Gestão simples, contagens pouco frequentes</td></tr>
 </tbody></table></div>
 <p class="note">As conclusões para N, O, K e L vêm da aula. As outras células seguem a mesma lógica: faturação pede controlo, volume pede espaço.</p>
 <h3>3. Onde fica cada artigo: localização fixa ou dinâmica</h3>
@@ -2756,7 +2756,12 @@ const SAI_EX=`<p class="eq">Produtos K a Q (dados da aula)</p>
 </tbody></table></div>
 <ol><li><b>Faturação</b> (total 723): N 168 e O 168 → <b>A</b> (46%) · P 110, Q 91, M 66 → <b>B</b> · K 63, L 57 → <b>C</b>.</li>
 <li><b>Volume</b> (total 512): K 270 e L 120 → <b>A</b> (76%) · M 55, N 24, P 22 → <b>B</b> · O 14, Q 7 → <b>C</b>.</li>
-<li><b>Matriz:</b> N = A/B · O = A/C · P e M = B/B · Q = B/C · K e L = C/A.</li>
+<li><b>Matriz</b> (volume nas linhas, faturação nas colunas):
+<div class="scroll"><table class="mx3"><thead><tr><th>Volume ↓ · Faturação →</th><th>A</th><th>B</th><th>C</th></tr></thead><tbody>
+<tr><th>A</th><td></td><td></td><td><b>K, L</b></td></tr>
+<tr><th>B</th><td><b>N</b></td><td><b>M, P</b></td><td></td></tr>
+<tr><th>C</th><td><b>O</b></td><td><b>Q</b></td><td></td></tr>
+</tbody></table></div></li>
 <li><b>Conclusões:</b> N e O pedem <b>controlo apertado do stock</b> (concentram o capital). K e L pedem <b>espaço e localização estudada</b>, mas pouco capital. M e P, com a maior utilização (11), devem ficar <b>perto dos cais, no picking</b>.</li></ol>`;
 
 
@@ -2828,9 +2833,9 @@ function sxHTML(){
     ${st===2?`<button class="vbtn" id="sx2" ${Object.keys(s.cl).length<14?'disabled':''}>Verificar classes</button>`:`<p class="sxres">${s.score.k} de 14 classes certas. Faturação, por ordem: ${srt("f").map(x=>x.l+" "+fmt(x.f)).join(" · ")}. Volume: ${srt("m").map(x=>x.l+" "+fmt(x.m)).join(" · ")}.</p>`}`; }
   if(st>=3){
     const cell=(f,m)=>it.filter(x=>x.cf===f&&x.cm===m).map(x=>`<b>${x.l}</b>`).join(" ")||'<span class="faint">—</span>';
-    h+=`<p class="sxstep"><b>3.</b> A matriz cruzada.</p>
-    <div class="scroll"><table class="sxmx"><thead><tr><th>Fat. ↓ · Vol. →</th><th>A</th><th>B</th><th>C</th></tr></thead><tbody>
-    ${["A","B","C"].map(f=>`<tr><th>${f}</th>${["A","B","C"].map(m=>`<td class="c${f}${m}">${cell(f,m)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    h+=`<p class="sxstep"><b>3.</b> A matriz cruzada: volume nas linhas, faturação nas colunas.</p>
+    <div class="scroll"><table class="sxmx"><thead><tr><th>Volume ↓ · Faturação →</th><th>A</th><th>B</th><th>C</th></tr></thead><tbody>
+    ${["A","B","C"].map(m=>`<tr><th>${m}</th>${["A","B","C"].map(f=>`<td class="c${f}${m}">${cell(f,m)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
     <p class="sxstep"><b>4.</b> Conclusões operacionais.</p>
     ${sxQs().map((q,i)=>{ const a=s.ans[i], ord=s.ord[i];
       return `<div class="sxq"><p>${esc(q.q)}</p><div class="sxopts">${ord.map(k=>`<button data-sq="${i}" data-k="${k}" ${a!=null?'disabled':''} class="${a!=null&&k===0?'right':''} ${a===k&&k!==0?'wrong':''}">${esc(q.o[k])}</button>`).join("")}</div>${a!=null?`<p class="sxe">${a===0?'✓ Certo. ':'✗ '}${esc(q.e)}</p>`:''}</div>`; }).join("")}`;
@@ -2961,7 +2966,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795290622";
+const BUILD="1795292496";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
