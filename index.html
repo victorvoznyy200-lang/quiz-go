@@ -623,6 +623,7 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .flux svg *{stroke:#8f979e;stroke-width:1.6}
 .flux figcaption{font-size:.82rem;font-weight:600;line-height:1.2}
 .flux figcaption small{display:block;font-weight:500;opacity:.75;font-size:.74rem}
+.pert{margin:14px 0 4px}.pert table{width:100%;border-collapse:collapse;font-size:.9rem}.pert th,.pert td{padding:7px 9px;border-bottom:1px solid rgba(127,127,127,.25);text-align:left}.pert th{font-size:.78rem;opacity:.8}@media (max-width:640px){.pert .pd{display:none}.pert table{font-size:.86rem}.pert th,.pert td{padding:7px 6px}}
 @media (max-width:420px){.flux figure{flex-basis:calc(33.3% - 6px)}}
 .opts{display:flex;flex-direction:column;gap:10px}
 .opt{display:flex;align-items:flex-start;gap:12px;text-align:left;width:100%;border:1px solid var(--gb);border-radius:16px;padding:13px 14px;min-height:58px;font-size:1rem;line-height:1.4;
@@ -1301,15 +1302,15 @@ null, // (pergunta de factos do caso Origens: quem produz o Origens; removida a 
 ["W5","t","A eficiência de uma linha mede…",["Quanto do tempo pago é trabalho","O número de unidades por dia","O lucro por posto","O número de defeitos"],"Eficiência = Σ tarefas ÷ (postos × ciclo)."],
 ["W5","t","Entre tarefas elegíveis, qual se atribui primeiro a um posto?",["A mais longa ou com mais sucessoras","A mais curta ou com menos sucessoras","A que tem menos precedências","A que deixa mais tempo livre"],"Respeitando precedências e sem ultrapassar o ciclo."],
 ["W5","c","Linha dos aviões: 6 postos, ciclo de 12 min, Σ = 66 min. Tempo ocioso por ciclo?",["6 min","12 min","66 min","0 min"],"6 × 12 − 66 = 6 min."],
-["W5","t","Na solução da linha dos aviões, que tarefas ficam juntas no posto 4?",["C + D + F (12 min)","C + D + E (12 min)","D + F + H (11 min)","C + F + G (12 min)"],"Posto 6 = G + I (10 min)."],
-["W5","t","Na linha dos aviões, a tarefa I só pode começar depois de…",["G e H","A","B e C","F"],"Precedências: F após C e D; G após F; H após E; I após G e H."],
+null, // (dependia da tabela de tarefas de um exercício dos slides; removida)
+null, // (dependia da tabela de tarefas de um exercício dos slides; removida)
 ["W5","t","Qual NÃO é uma estratégia de layout da síntese da W5?",["Aumentar movimentações","Minimizar custos","Reduzir desperdícios","Eficiência nos fluxos"],"Os layouts fazem diferença substancial na eficiência."],
 ["W5","t","No fluxo têxtil, um princípio de layout é…",["Movimentar materiais na distância mais curta possível","Agrupar as máquinas por função, longe da expedição","Manter stock entre etapas para evitar paragens","Separar o corte da costura para reduzir ruído"],"Matéria-prima → modelagem → corte → costura → acabamento → expedição."],
 ["W5","t","O que significa PERT?",["Program Evaluation and Review Technique","Process Efficiency and Rate Tool","Planned Effort and Resource Time","Project Execution Report"],"CPM = Critical Path Method."],
 ["W5","t","O CPM trabalha com durações…",["Determinísticas","Incertas, com três estimativas","Aleatórias","Desconhecidas"],"O PERT usa três estimativas (a, m, b)."],
-["W5","c","Projeto para abrir uma oficina (em semanas): A 2; B 4 depois de A; C 3 depois de A; D 2 depois de A; E 2 depois de B e C; F 1 depois de D e E. Qual é a duração total?",["9 semanas","14 semanas","8 semanas","6 semanas"],"Caminho mais longo A → B → E → F = 2 + 4 + 2 + 1 = 9."],
-["W5","t","Projeto para abrir uma oficina (em semanas): A 2; B 4 depois de A; C 3 depois de A; D 2 depois de A; E 2 depois de B e C; F 1 depois de D e E. Qual é o caminho crítico?",["A → B → E → F","A → C → E → F","A → D → F","A → B → C → E → F"],"A-B-E-F = 9; A-C-E-F = 8 (C tem 1 semana de folga); A-D-F = 5.",13],
-["W5","c","Projeto para abrir uma oficina (em semanas): A 2; B 4 depois de A; C 3 depois de A; D 2 depois de A; E 2 depois de B e C; F 1 depois de D e E. Qual é a folga de D?",["4 semanas","1 semana","0 semanas","2 semanas"],"D termina cedo na semana 4, mas F só pode começar na 8 (depois de E): folga 4."],
+["W5", "c", "Para abrir uma oficina há seis atividades, com a duração e as precedências da tabela. Qual é a duração total do projeto?", ["9 semanas", "14 semanas", "8 semanas", "6 semanas"], "O caminho mais longo é Obras → Elevadores → Testes → Abertura = 2 + 4 + 2 + 1 = 9 semanas."],
+["W5", "t", "Para abrir uma oficina há seis atividades, com a duração e as precedências da tabela. Qual é o caminho crítico?", ["Obras → Elevadores → Testes → Abertura", "Obras → Licença → Testes → Abertura", "Obras → Formação → Abertura", "Obras → Elevadores → Licença → Testes → Abertura"], "Caminhos: com Elevadores = 2+4+2+1 = 9; com Licença = 2+3+2+1 = 8 (a Licença tem 1 semana de folga); com Formação = 2+2+1 = 5. {3} está errado porque a Licença e os Elevadores correm em paralelo.", 13],
+["W5", "c", "Para abrir uma oficina há seis atividades, com a duração e as precedências da tabela. Qual é a folga da Formação?", ["4 semanas", "1 semana", "0 semanas", "2 semanas"], "A Formação pode acabar na semana 4 (2 + 2), mas a Abertura só começa na semana 8, depois dos Testes: folga = 8 − 4 = 4."],
 ["W5","t","Atividades no caminho crítico têm folga…",["Zero","Máxima","Negativa","De 1 semana"],"Qualquer atraso atrasa o projeto."],
 ["W5","t","Quem propôs as três estimativas do PERT?",["Malcolm et al. (1959)","Skinner (1969)","Bitner (1992)","Heizer et al. (2020)"],"Otimista, mais provável e pessimista."],
 ["W5", "c", "PERT: a = 3, b = 7. Qual é a variância?", ["0,44", "0,67", "4,00", "1,33"], "((7 − 3) ÷ 6)² = 0,44. 0,67 é o desvio-padrão.", 13],
@@ -2354,6 +2355,12 @@ function fluxFig(q,reveal){
     ["Triângulo","espera / armazenagem",'<polygon points="40,3 76,49 4,49" fill="#e6f1e9"/>']];
   return `<div class="flux" aria-label="Formas de um fluxograma">${F.map(f=>`<figure><svg viewBox="0 0 80 52" aria-hidden="true">${f[2]}</svg><figcaption>${f[0]}${reveal?`<small>${f[1]}</small>`:''}</figcaption></figure>`).join("")}</div>`;
 }
+// Tabela do projeto da oficina (perguntas de CPM)
+function pertFig(q){
+  if(!/^Para abrir uma oficina há seis atividades/.test(q.q)) return "";
+  const R=[["Obras","Obras no espaço",2,"—"],["Elevadores","Comprar e instalar os elevadores",4,"Obras"],["Licença","Tratar do licenciamento",3,"Obras"],["Formação","Formar os técnicos",2,"Obras"],["Testes","Testar os equipamentos",2,"Elevadores e Licença"],["Abertura","Abrir ao público",1,"Formação e Testes"]];
+  return `<div class="scroll pert"><table><thead><tr><th>Atividade</th><th class="pd">O que é</th><th>Semanas</th><th>Começa depois de</th></tr></thead><tbody>${R.map(r=>`<tr><td><b>${r[0]}</b></td><td class="pd">${r[1]}</td><td style="text-align:center">${r[2]}</td><td>${r[3]}</td></tr>`).join("")}</tbody></table></div>`;
+}
 const LET="ABCD";
 
 function renderSide(){
@@ -2884,7 +2891,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795272059";
+const BUILD="1795276568";
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD&&!(view==="q"&&S&&!S.done)&&!document.getElementById("namebox")) location.reload(); }catch(e){} }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); });
 setInterval(checkUpdate,10*60*1000);
@@ -3495,7 +3502,7 @@ function renderQ(dir){
   <section class="card qcard${dir?'':' appear'}" ${dir?'':'style="animation-duration:.45s"'}>
     <div class="ch"><span class="ct" style="font-size:1.25rem">Pergunta ${S.i+1}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${q.again?'<span class="tag r">Outra vez</span>':''}<span class="tag">${q.w==="PR"?"Prática":q.w}</span>${q.t==="c"?'<span class="tag c">Cálculo</span>':''}</span></div>
     <p class="qtext">${esc(q.q)}</p>
-    ${fluxFig(q,reveal)}
+    ${fluxFig(q,reveal)}${pertFig(q)}
     <div class="opts">${q.opts.map((o,k)=>{let c="opt"; if(reveal){ if(o.ok) c+=" right"; else if(q.pick===k) c+=" wrong"; else c+=" dim"; } else if(q.pick===k) c+=" sel";
       return `<button class="${c}" data-k="${k}" ${reveal?'disabled':''}><span class="k">${LET[k]}</span><span class="t">${esc(o.txt)}</span></button>`;}).join("")}</div>
     ${!reveal?`<button class="idk" id="idk">${test&&q.pick===-1?'Marcada como «não sei»':'Não sei'}</button>`:''}
