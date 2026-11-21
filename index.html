@@ -524,6 +524,13 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .lesson h3{font-family:var(--sans);font-weight:700;font-size:1.02rem;margin:8px 0 0}
 .lesson .note{font-size:.85rem;color:var(--muted)}
 .mx3 th{white-space:nowrap}
+.mx3{table-layout:fixed;width:100%}.mx3 th:first-child{width:24%;white-space:normal}.mx3 td,.mx3 th{vertical-align:top}
+.mxg{display:grid;grid-template-columns:minmax(78px,.9fr) repeat(3,minmax(0,1fr));gap:6px;max-width:480px;margin:12px 0 6px}
+.mxg>div{display:grid;place-items:center;text-align:center;border-radius:10px;min-height:54px;font-weight:700}
+.mxg .mxk{font-size:.7rem;font-weight:600;color:var(--muted);line-height:1.3;min-height:0}
+.mxg .mxh{color:var(--acc);font-size:.95rem;min-height:0;padding:4px}
+.mxg .mxv{background:var(--th);border:1px solid var(--line)}
+.mxg .mxv.on{background:var(--acc-soft);border-color:var(--acc);color:var(--ink);font-size:1.05rem}
 .sx2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .sxwrap{display:flex;flex-direction:column;gap:12px;margin-top:14px}
 .sxstep{margin:6px 0 0}
@@ -2756,12 +2763,7 @@ const SAI_EX=`<p class="eq">Produtos K a Q (dados da aula)</p>
 </tbody></table></div>
 <ol><li><b>Faturação</b> (total 723): N 168 e O 168 → <b>A</b> (46%) · P 110, Q 91, M 66 → <b>B</b> · K 63, L 57 → <b>C</b>.</li>
 <li><b>Volume</b> (total 512): K 270 e L 120 → <b>A</b> (76%) · M 55, N 24, P 22 → <b>B</b> · O 14, Q 7 → <b>C</b>.</li>
-<li><b>Matriz</b> (volume nas linhas, faturação nas colunas):
-<div class="scroll"><table class="mx3"><thead><tr><th>Volume ↓ · Faturação →</th><th>A</th><th>B</th><th>C</th></tr></thead><tbody>
-<tr><th>A</th><td></td><td></td><td><b>K, L</b></td></tr>
-<tr><th>B</th><td><b>N</b></td><td><b>M, P</b></td><td></td></tr>
-<tr><th>C</th><td><b>O</b></td><td><b>Q</b></td><td></td></tr>
-</tbody></table></div></li>
+<li><b>Matriz</b> (volume nas linhas, faturação nas colunas):<div class="mxg"><div class="mxk">Volume ↓<br>Faturação →</div><div class="mxh">A</div><div class="mxh">B</div><div class="mxh">C</div><div class="mxh">A</div><div class="mxv"></div><div class="mxv"></div><div class="mxv on">K, L</div><div class="mxh">B</div><div class="mxv on">N</div><div class="mxv on">M, P</div><div class="mxv"></div><div class="mxh">C</div><div class="mxv on">O</div><div class="mxv on">Q</div><div class="mxv"></div></div></li>
 <li><b>Conclusões:</b> N e O pedem <b>controlo apertado do stock</b> (concentram o capital). K e L pedem <b>espaço e localização estudada</b>, mas pouco capital. M e P, com a maior utilização (11), devem ficar <b>perto dos cais, no picking</b>.</li></ol>`;
 
 
@@ -2966,7 +2968,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795292496";
+const BUILD="1795293211";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
