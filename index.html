@@ -411,6 +411,7 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .rkav{width:40px;height:40px;display:grid;place-items:center;font-weight:700;font-size:1.6rem}.rkav img{width:34px;height:34px}
 .rkname{min-width:0}.rkname b{display:flex;align-items:center;gap:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkname small{display:block;color:var(--muted);font-size:.78rem}
 .rkval{font-weight:800;font-variant-numeric:tabular-nums;font-size:1.05rem}
+.rksub{display:flex;justify-content:center;margin:10px 0 0}.rksub[hidden]{display:none}.rksub .sxseg button{width:auto;padding:0 14px;white-space:nowrap}
 .rktabs{position:relative}.rktabs button{position:relative;z-index:1;transition:color .25s}
 .rktabs button[aria-selected="true"]{background:none!important}
 .rkind{position:absolute;top:4px;bottom:4px;left:4px;border-radius:10px;background:var(--acc-soft);transition:transform .35s cubic-bezier(.2,.8,.2,1),width .35s cubic-bezier(.2,.8,.2,1);z-index:0}
@@ -3180,7 +3181,7 @@ function ptsConvert(){
 // ───────── CONTAS E CLASSIFICAÇÃO (Supabase) — só no site; no artifact SB fica desligado
 const SB_URL="https://rrobxngzsxtqadysofxx.supabase.co", SB_KEY="sb_publishable_sW0SH5zdnBINH-m0MBwGzw_kl5gk6Zf";
 const SB=(SB_URL.startsWith("https://")&&typeof window.supabase!=="undefined")?window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}}):null;
-let sbUser=null, sbBoard=null, sbBoardT=0, sbPushT=null, sbLastLB="", sbPulling=false, rankTab="points";
+let sbUser=null, sbBoard=null, sbBoardT=0, sbPushT=null, sbLastLB="", sbPulling=false, rankTab="points", rankSub="t30";
 const SB_ERR=m=>{ m=String(m||"");
   if(/invalid login/i.test(m)) return "Email ou password errados.";
   if(/already registered|already exists/i.test(m)) return "Já existe uma conta com este email. Usa «Entrar».";
@@ -3218,7 +3219,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795358854";
+const BUILD="1795362268";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
@@ -3241,7 +3242,7 @@ async function sbPush(){
   await sbLB();
 }
 function myRow(){ fixCounts(); const h=store.hist||[]; const best=h.length?Math.max(...h.map(t=>t.nota)):null;
-  return {user_id:sbUser.id,name:(cfg.name||"Sem nome").slice(0,30),emoji:cfg.emoji||null,points:Math.max(0,Math.round(store.pts||0)),correct:store.ok||0,best_combo:store.bestCombo||0,answered:store.n||0,tests:h.length,best_grade:best===null?null:Math.round(best*10)/10,streak:streak(),recent:recentList()}; }
+  return {user_id:sbUser.id,name:(cfg.name||"Sem nome").slice(0,30),emoji:cfg.emoji||null,points:Math.max(0,Math.round(store.pts||0)),correct:store.ok||0,best_combo:store.bestCombo||0,answered:store.n||0,tests:h.length,best_grade:best===null?null:Math.round(best*10)/10,sims:(store.sims||[]).length,best_sim:(store.sims||[]).length?Math.round(Math.max(...store.sims.map(x=>+x.nota||0))*10)/10:null,streak:streak(),recent:recentList()}; }
 async function sbLB(){
   if(!SB||!sbUser) return;
   try{
@@ -3250,7 +3251,7 @@ async function sbLB(){
     const pay={...r,updated_at:new Date().toISOString()};
     let {error}=await SB.from("leaderboard").upsert(pay);
     // colunas que ainda não existem na tabela: tira-as e tenta outra vez
-    for(let i=0;i<3&&error;i++){ const m=error.message||""; const miss=["recent","correct","best_combo"].filter(k=>k in pay&&m.includes(k)); if(!miss.length) break; miss.forEach(k=>delete pay[k]); ({error}=await SB.from("leaderboard").upsert(pay)); }
+    for(let i=0;i<3&&error;i++){ const m=error.message||""; const miss=["recent","correct","best_combo","sims","best_sim"].filter(k=>k in pay&&m.includes(k)); if(!miss.length) break; miss.forEach(k=>delete pay[k]); ({error}=await SB.from("leaderboard").upsert(pay)); }
     if(!error){ sbLastLB=k; sbBoard=null; }
   }catch(e){ console.warn("sbLB",e); }
 }
@@ -3364,12 +3365,12 @@ function bindAccount(){
   if(s) s.onclick=async()=>{ s.disabled=true; s.textContent="A sincronizar…"; await sbPull(); s.disabled=false; s.textContent="Sincronizar agora"; toast("Progresso sincronizado."); };
   if(b) b.onchange=async()=>{ cfg.board=b.checked; saveCfg(); sbLastLB=""; await sbLB(); toast(b.checked?"Voltaste à classificação.":"Saíste da classificação."); };
 }
-const RK_TABS=[["points","Pontos"],["combo","Melhor sequência"],["acc","Precisão"],["best","Melhor teste"],["streak","Dias seguidos"]];
+const RK_TABS=[["points","Pontos"],["combo","Melhor sequência"],["acc","Precisão"],["best","Melhor nota"],["streak","Dias seguidos"]];
 const RK={
-  val:{points:r=>r.points, combo:r=>r.best_combo>0?r.best_combo:null, acc:r=>r.answered>=50&&rkC(r)!==null?rkC(r)/r.answered*100:null, best:r=>r.best_grade, streak:r=>r.streak>0?r.streak:null},
-  show:{points:r=>fmt(r.points), combo:r=>"🔥 "+r.best_combo, acc:r=>fmt(rkC(r)/r.answered*100,1)+"%", best:r=>fmt(r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
-  sub:{points:r=>rkCS(r), combo:r=>`certas seguidas · ${fmt(r.points)} pontos`, acc:r=>rkCS(r), best:r=>`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
-  empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", combo:"Ainda ninguém fez uma sequência de certas.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", streak:"Ninguém tem uma sequência ativa."}
+  val:{points:r=>r.points, combo:r=>r.best_combo>0?r.best_combo:null, acc:r=>r.answered>=50&&rkC(r)!==null?rkC(r)/r.answered*100:null, best:r=>rankSub==="sim"?(r.best_sim==null?null:+r.best_sim):r.best_grade, streak:r=>r.streak>0?r.streak:null},
+  show:{points:r=>fmt(r.points), combo:r=>"🔥 "+r.best_combo, acc:r=>fmt(rkC(r)/r.answered*100,1)+"%", best:r=>fmt(rankSub==="sim"?+r.best_sim:r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
+  sub:{points:r=>rkCS(r), combo:r=>`certas seguidas · ${fmt(r.points)} pontos`, acc:r=>rkCS(r), best:r=>rankSub==="sim"?`${r.sims||0} simulado${r.sims===1?'':'s'}`:`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
+  empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", combo:"Ainda ninguém fez uma sequência de certas.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", bestsim:"Ainda ninguém fez um simulado de 90 min.", streak:"Ninguém tem uma sequência ativa."}
 };
 // linhas gravadas antes da coluna «correct» existir ficam com 0 certas e pontos > 0: não se sabe as certas até a pessoa voltar ao site
 const rkC=r=>(r.correct==null||(r.correct===0&&r.points>0)||r.correct>r.answered)?null:r.correct;
@@ -3382,16 +3383,19 @@ async function renderRank(){
     <div class="topr"><button class="gbtn" id="rkR">${I.refresh}<span>Atualizar</span></button></div></div>
     ${sbUser?'':`<section class="card appear rkcta"><div><b>Ainda não estás na classificação.</b><p class="sub" style="margin:4px 0 0">Cria uma conta e o progresso deste aparelho entra logo.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="vbtn" id="rkUp">Criar conta</button><button class="gbtn" id="rkIn">Entrar</button></div></section>`}
     <div class="rktabs appear" role="tablist"><span class="rkind" id="rkInd"></span>${RK_TABS.map(([k,l])=>`<button role="tab" aria-selected="${rankTab===k}" data-rk="${k}">${l}</button>`).join("")}</div>
+    <div class="rksub appear" id="rkSub" ${rankTab==="best"?"":"hidden"}><span class="sxseg"><button data-rs="t30" class="${rankSub==="t30"?"on":""}">Teste de 30 min</button><button data-rs="sim" class="${rankSub==="sim"?"on":""}">Simulado de 90 min</button></span></div>
     <section class="card appear rkcard"><ol class="rk" id="rkList">${Array.from({length:5},(_,k)=>`<li class="rkrow sk" style="animation-delay:${k*.08}s"><span class="rkpos"></span><span class="rkav"></span><span class="rkname"><b></b><small></small></span><span class="rkval"></span></li>`).join("")}</ol></section>`;
   if($("#rkUp")){ $("#rkUp").onclick=()=>askAuth("up"); $("#rkIn").onclick=()=>askAuth("in"); }
   rkInd(false);
   document.querySelectorAll("[data-rk]").forEach(b=>b.onclick=()=>{ if(rankTab===b.dataset.rk) return; rankTab=b.dataset.rk;
-    document.querySelectorAll("[data-rk]").forEach(x=>x.setAttribute("aria-selected",x===b)); rkInd(true); rkDraw(false); });
+    document.querySelectorAll("[data-rk]").forEach(x=>x.setAttribute("aria-selected",x===b)); rkInd(true); rkSubShow(); rkDraw(false); });
+  document.querySelectorAll("[data-rs]").forEach(b=>b.onclick=()=>{ if(rankSub===b.dataset.rs) return; rankSub=b.dataset.rs; document.querySelectorAll("[data-rs]").forEach(x=>x.classList.toggle("on",x===b)); rkDraw(false); });
   const rb=$("#rkR"); rb.onclick=async()=>{ rb.classList.add("spin"); rb.disabled=true; try{ await rkLoad(true); rkDraw(false); }catch(e){ toast("Não foi possível atualizar. "+SB_ERR(e.message)); } setTimeout(()=>{rb.classList.remove("spin"); rb.disabled=false;},400); };
   try{ if(sbUser) await sbLB(); await rkLoad(false); }catch(e){ if(view==="rank") $("#rkList").innerHTML=`<li class="rkmsg">Não foi possível carregar a classificação. ${esc(SB_ERR(e.message))}</li>`; return; }
   if(view==="rank") rkDraw(true);
 }
 addEventListener("resize",()=>{ if(view==="rank") rkInd(false); });
+function rkSubShow(){ const e=$("#rkSub"); if(!e) return; const on=rankTab==="best"; if(on===!e.hidden) return; e.hidden=!on; if(on&&!rkReduce()) e.animate([{opacity:0,transform:"translateY(-6px)"},{opacity:1,transform:"none"}],{duration:260,easing:"cubic-bezier(.2,.8,.2,1)"}); }
 async function rkLoad(force){ return sbLoadBoard(force); }
 function rkInd(anim){ const ind=$("#rkInd"), b=document.querySelector('[data-rk][aria-selected="true"]'); if(!ind||!b) return;
   ind.style.transition=anim&&!rkReduce()?"":"none"; ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft-4}px)`; if(!anim) void ind.offsetWidth; }
@@ -3401,7 +3405,7 @@ function rkDraw(first){
   const list=sbBoard.filter(r=>f(r)!==null&&f(r)!==undefined).sort((a,b)=>f(b)-f(a)||b.points-a.points);
   // posições antigas, para as linhas deslizarem (FLIP)
   const old={}; ol.querySelectorAll(".rkrow[data-u]").forEach(li=>old[li.dataset.u]=li.getBoundingClientRect().top);
-  if(!list.length){ ol.innerHTML=`<li class="rkmsg">${RK.empty[rankTab]}</li>`; return; }
+  if(!list.length){ ol.innerHTML=`<li class="rkmsg">${RK.empty[rankTab==="best"&&rankSub==="sim"?"bestsim":rankTab]}</li>`; return; }
   let pos=0, lastV=null;
   ol.innerHTML=list.map((r,k)=>{ const v=f(r); if(v!==lastV){pos=k+1; lastV=v;}
     return `<li class="rkrow${r.user_id===me?' me':''}${pos<=3?' top'+pos:''}" data-u="${esc(r.user_id)}"><span class="rkpos">${pos}</span><span class="rkav">${r.emoji?emoImg(r.emoji):esc((r.name||"?").charAt(0).toUpperCase())}</span>
@@ -3428,7 +3432,7 @@ function rkUser(uid){
   const [d,close]=smallModal(`<div class="namecard ucard" role="dialog" aria-label="Estatísticas de ${esc(r.name||"")}">
     <button class="ux" id="uX" aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="uhead"><span class="rkav uav">${r.emoji?emoImg(r.emoji):esc((r.name||"?").charAt(0).toUpperCase())}</span><div><h2>${esc(r.name||"Sem nome")}${me?' <span class="tag">tu</span>':''}</h2><p>${pos}.º lugar em pontos · ${fmt(r.points)} pontos</p></div></div>
-    <div class="ustats">${c===null?st(fmt(r.answered),"respostas"):st(`${fmt(c)}<small> de ${fmt(r.answered)}</small>`,"respostas certas")}${st(acc,"de acerto")}${st(r.best_combo>0?"🔥 "+r.best_combo:"—","melhor sequência")}${st(fmt(r.tests||0),"testes feitos")}${st(r.best_grade!=null?fmt(r.best_grade,1):"—","melhor nota")}${st(r.streak>0?r.streak+(r.streak===1?" dia":" dias"):"—","seguidos")}</div>
+    <div class="ustats">${c===null?st(fmt(r.answered),"respostas"):st(`${fmt(c)}<small> de ${fmt(r.answered)}</small>`,"respostas certas")}${st(acc,"de acerto")}${st(r.best_combo>0?"🔥 "+r.best_combo:"—","melhor sequência")}${st(`${r.best_grade!=null?fmt(r.best_grade,1):"—"}<small> em ${fmt(r.tests||0)}</small>`,"melhor teste 30 min")}${st(`${r.best_sim!=null?fmt(+r.best_sim,1):"—"}<small> em ${fmt(r.sims||0)}</small>`,"melhor simulado 90 min")}${st(r.streak>0?r.streak+(r.streak===1?" dia":" dias"):"—","seguidos")}</div>
     <h3 class="uh3">Últimos exercícios e testes</h3>
     ${rec.length?`<div class="scroll"><table class="utab"><thead><tr><th class="udt">Quando</th><th>O quê</th><th>Resultado</th><th>Pontos</th></tr></thead><tbody>${rec.map(x=>`<tr><td class="udt">${esc(x.d||"")}</td><td class="uwh">${esc(RD_M[x.m]||x.m||"")}${x.w?" · "+esc(x.w):""}<small class="ud">${esc(x.d||"")}</small></td><td>${res(x)}</td><td>${x.p==null?"—":`<span class="${x.p>=0?'up':'down'}">${x.p>=0?"+":"−"}${fmt(Math.abs(x.p))}</span>`}</td></tr>`).join("")}</tbody></table></div>`:`<p class="umsg">${me?"Ainda não há resultados guardados. Aparecem a partir da próxima ronda que fizeres.":"Ainda não há resultados guardados. Aparecem quando esta pessoa fizer a próxima ronda."}</p>`}
   </div>`);
