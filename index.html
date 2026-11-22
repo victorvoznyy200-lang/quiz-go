@@ -547,7 +547,7 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .sxin:focus{outline:2px solid var(--acc);outline-offset:1px}
 .sxv{font-weight:700;display:inline-flex;flex-direction:column}.sxv.ok{color:var(--ok)}.sxv.bad{color:var(--bad)}.sxv small{font-weight:400}
 .sxseg{display:inline-flex;gap:3px;padding:3px;border-radius:10px;background:var(--th)}
-.sxseg button{border:0;font:inherit;font-weight:700;width:32px;height:30px;border-radius:8px;background:none;color:var(--muted);cursor:pointer;transition:background .2s,color .2s}
+.sxseg button{border:0;font:inherit;font-weight:700;width:32px;height:30px;border-radius:8px;background:none;color:var(--muted);cursor:pointer;transition:background .25s ease,color .25s ease,transform .15s ease}.sxseg button:active{transform:scale(.92)}
 .sxseg button.on{background:var(--acc);color:var(--on-acc)}
 .sxseg button.right{background:var(--ok-soft);color:var(--ink);box-shadow:inset 0 0 0 2px var(--ok)}
 .sxseg button.wrong{background:var(--bad);color:#fff}
@@ -557,7 +557,7 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .sxq{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;background:var(--th)}
 .sxq>p{margin:0;font-weight:600}
 .sxopts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.sxopts button{font:inherit;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--base);color:var(--ink);cursor:pointer;transition:background .2s,border-color .2s}
+.sxopts button{font:inherit;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--base);color:var(--ink);cursor:pointer;transition:background .25s ease,border-color .25s ease,box-shadow .25s ease,transform .15s ease}.sxopts button:active:not(:disabled){transform:scale(.985)}
 .sxopts button.right{border-color:var(--ok);background:var(--ok-soft)}
 .sxopts button.wrong{border-color:var(--bad);background:var(--bad-soft)}
 .sxopts button:disabled{cursor:default}.sxopts button:disabled:not(.right):not(.wrong){opacity:.6}
@@ -689,6 +689,7 @@ ol.rk{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .opt:active:not(:disabled){transform:scale(.985)}
 .opt .k{flex:0 0 auto;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:.85rem;background:var(--tile);color:var(--on-tile)}
 .opt .t{min-width:0;padding-top:3px}
+.opt .k{transition:background .3s ease,color .3s ease,transform .3s cubic-bezier(.2,.8,.2,1)}.opt.sel .k{transform:scale(1.06)}
 .opt.sel{background:var(--acc-soft);box-shadow:0 0 0 2px var(--acc),0 10px 28px -10px var(--acc-glow)}
 .opt.sel .k{background:var(--acc);color:var(--on-acc)}
 .opt.right{background:var(--ok-soft);box-shadow:0 0 0 2px var(--ok),0 0 26px -6px var(--ok);animation:pop .35s}
@@ -2606,7 +2607,7 @@ function simExam(){
   $("#main").querySelectorAll(".card.appear").forEach((c,i)=>c.style.animationDelay=(i*.06)+"s");
   const cnt=()=>{ const a=s.mc.filter(q=>q.pick!=null).length; const el=$("#simA"); if(el) el.textContent=`${a}/8 escolhas`; };
   cnt();
-  document.querySelectorAll("[data-mq]").forEach(b=>b.onclick=()=>{ const q=s.mc[+b.dataset.mq], k=+b.dataset.k; q.pick=q.pick===k?null:k; b.parentNode.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel",q.pick===+o.dataset.k)); if(b.animate&&!qReduce()) b.animate([{transform:"scale(.98)"},{transform:"none"}],{duration:180}); cnt(); simSave(); });
+  document.querySelectorAll("[data-mq]").forEach(b=>b.onclick=()=>{ const q=s.mc[+b.dataset.mq], k=+b.dataset.k; q.pick=q.pick===k?null:k; b.parentNode.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel",q.pick===+o.dataset.k)); cnt(); simSave(); });
   document.querySelectorAll("[data-sin]").forEach(i=>i.oninput=()=>{ const v=i.value.replace(/[^\d]/g,""); if(v!==i.value) i.value=v; sx.in[i.dataset.sin]=v; simSave(); });
   document.querySelectorAll("[data-scl]").forEach(b=>b.onclick=()=>{ sx.cl[b.dataset.scl]=b.dataset.c; b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); simSave(); });
   document.querySelectorAll("#simSxB [data-mv]").forEach(b=>b.onclick=()=>{ if(!sx.ord2) sx.ord2=sx.it.map(x=>x.l); if(mvRow(sx.ord2,b.closest("tr").dataset.l,+b.dataset.mv)){ flipRows($("#simSxB"),sx.ord2); simSave(); } });
@@ -2643,7 +2644,7 @@ function simRecord(){
   if(r){ r.ok=e.nota; } else { roundLog({m:"sim",ok:e.nota,n:20,p:null,sim:SIM.t}); }
   save(); renderSide(); if(typeof sbQueue==="function") sbQueue();
 }
-function simResult(){
+function simResult(quiet){
   view="sim"; const s=SIM, p=simParts(s), sx=s.sx, it=sx.it, qs=simQs(sx), nota=p.mc+p.cp+p.dv;
   const srt=k=>[...it].sort((a,b)=>b[k]-a[k]);
   const cell=(f,m)=>it.filter(x=>x.cf===f&&x.cm===m).map(x=>x.l).join(", ");
@@ -2672,7 +2673,7 @@ function simResult(){
   <section class="card appear simc"><div class="ch"><span class="ct">Parte I · Escolha múltipla</span><span class="sub">${p.mc} de 8 certas</span></div>
     ${s.mc.map((q,i)=>{ const r=q.opts.findIndex(o=>o.ok), ok=q.pick===r; return `<div class="rv"><span class="sub">${i+1}. ${q.w}</span><b>${esc(q.q)}</b>${q.pick==null?'<span class="y small">Não respondeste.</span>':ok?'<span class="small" style="color:var(--ok)">✓ Certo</span>':`<span class="small" style="color:var(--bad)">✗ Escolheste: ${esc(q.opts[q.pick].txt)}</span>`}<span class="small">Certa: <b>${esc(q.opts[r].txt)}</b></span><span class="sub">${qe(q)}</span></div>`; }).join("")}
   </section>`;
-  $("#main").querySelectorAll(".card.appear").forEach((c,i)=>c.style.animationDelay=(i*.05)+"s");
+  if(quiet) $("#main").querySelectorAll(".appear").forEach(c=>c.classList.remove("appear")); else $("#main").querySelectorAll(".card.appear").forEach((c,i)=>c.style.animationDelay=(i*.05)+"s");
   document.querySelectorAll("[data-tk]").forEach(c=>c.onchange=()=>{ const i=+c.dataset.tk; const set=new Set(s.tick[i]||[]); c.checked?set.add(+c.value):set.delete(+c.value); s.tick[i]=[...set]; simRecord(); simSave();
     const q=simParts(s), n=q.mc+q.cp+q.dv; $("#simDv").textContent=fmt(q.dv,1)+" / 6"; $("#simNota").textContent=fmt(n,1)+" valores"; });
   $("#simBack").onclick=()=>{ SIM=null; try{localStorage.removeItem(simKey())}catch(e){} renderSim(); window.scrollTo(0,0); };
@@ -2704,7 +2705,7 @@ Responde só com JSON: {"pontos":[índices dos pontos cobertos],"comentario":"2 
       try{ const r=await SAMPLE.json(input,{modelTier:"default"});
         const pts=(Array.isArray(r&&r.pontos)?r.pontos:[]).map(Number).filter(x=>x>=0&&x<5&&Number.isInteger(x));
         s.tick[i]=[...new Set(pts)]; s.ai=s.ai||[]; s.ai[i]=String(r.comentario||"").slice(0,1200); simRecord(); simSave();
-        if(SIM===s && view==="sim"){ const y=window.scrollY; simResult(); window.scrollTo(0,y); }
+        if(SIM===s && view==="sim"){ const y=window.scrollY; simResult(true); window.scrollTo(0,y); const nb=document.querySelector(`[data-ai="${i}"] .simaic`); if(nb&&!qReduce()) nb.animate([{opacity:0,transform:"translateY(6px)"},{opacity:1,transform:"none"}],{duration:350,easing:"cubic-bezier(.2,.8,.2,1)"}); }
       }catch(e){ const m={not_granted:"Não deste permissão para usar a IA nesta página.",rate_limited:"Chegaste ao limite de utilização da IA. Tenta mais tarde.",invalid_json:"A IA respondeu num formato estranho. Carrega outra vez."};
         b.disabled=false; b.textContent="Corrigir com IA"; if(e&&e.code==="not_granted") b.remove();
         let n=box.querySelector(".simaierr"); if(!n){ n=document.createElement("p"); n.className="sub simaierr"; box.append(n); } n.textContent=m[e&&e.code]||"Não foi possível corrigir agora. Tenta outra vez daqui a pouco."; }
@@ -3219,7 +3220,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795362510";
+const BUILD="1795363497";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
@@ -3946,7 +3947,7 @@ function choose(k){
 // No teste de 30 min, escolher uma opção só atualiza a seleção (sem voltar a desenhar a página)
 function testMark(q,k){
   const card=document.querySelector("#main .qcard"); if(!card){ renderQ(); return; }
-  card.querySelectorAll(".opt").forEach(b=>{ const on=+b.dataset.k===k; if(on&&!b.classList.contains("sel")&&b.animate&&!qReduce()) b.animate([{transform:"scale(.98)"},{transform:"scale(1.01)"},{transform:"none"}],{duration:220,easing:"ease-out"}); b.classList.toggle("sel",on); });
+  card.querySelectorAll(".opt").forEach(b=>{ const on=+b.dataset.k===k; b.classList.toggle("sel",on); });
   const ik=card.querySelector("#idk"); if(ik) ik.textContent=k===-1?"Marcada como «não sei»":"Não sei";
   const total=S.qs.length, done=S.qs.filter(x=>x.pick!==null).length;
   const pills=document.querySelectorAll(".qbar .pill"); pills.forEach(p=>{ if(/respondidas$/.test(p.textContent)) p.textContent=done+" respondidas"; });
