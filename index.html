@@ -2641,7 +2641,7 @@ function simRecord(){
   store.sims=(store.sims||[]).filter(x=>x.t!==SIM.t).concat(e).slice(-15);
   const r=(store.rounds||[]).find(x=>x.sim===SIM.t);
   if(r){ r.ok=e.nota; } else { roundLog({m:"sim",ok:e.nota,n:20,p:null,sim:SIM.t}); }
-  save(); renderSide();
+  save(); renderSide(); if(typeof sbQueue==="function") sbQueue();
 }
 function simResult(){
   view="sim"; const s=SIM, p=simParts(s), sx=s.sx, it=sx.it, qs=simQs(sx), nota=p.mc+p.cp+p.dv;
@@ -3219,7 +3219,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795362268";
+const BUILD="1795362510";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
@@ -3367,14 +3367,17 @@ function bindAccount(){
 }
 const RK_TABS=[["points","Pontos"],["combo","Melhor sequência"],["acc","Precisão"],["best","Melhor nota"],["streak","Dias seguidos"]];
 const RK={
-  val:{points:r=>r.points, combo:r=>r.best_combo>0?r.best_combo:null, acc:r=>r.answered>=50&&rkC(r)!==null?rkC(r)/r.answered*100:null, best:r=>rankSub==="sim"?(r.best_sim==null?null:+r.best_sim):r.best_grade, streak:r=>r.streak>0?r.streak:null},
-  show:{points:r=>fmt(r.points), combo:r=>"🔥 "+r.best_combo, acc:r=>fmt(rkC(r)/r.answered*100,1)+"%", best:r=>fmt(rankSub==="sim"?+r.best_sim:r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
-  sub:{points:r=>rkCS(r), combo:r=>`certas seguidas · ${fmt(r.points)} pontos`, acc:r=>rkCS(r), best:r=>rankSub==="sim"?`${r.sims||0} simulado${r.sims===1?'':'s'}`:`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
+  val:{points:r=>r.points, combo:r=>r.best_combo>0?r.best_combo:null, acc:r=>r.answered>=50&&rkC(r)!==null?rkC(r)/r.answered*100:null, best:r=>rankSub==="sim"?rkSim(r).b:r.best_grade, streak:r=>r.streak>0?r.streak:null},
+  show:{points:r=>fmt(r.points), combo:r=>"🔥 "+r.best_combo, acc:r=>fmt(rkC(r)/r.answered*100,1)+"%", best:r=>fmt(rankSub==="sim"?rkSim(r).b:r.best_grade,1), streak:r=>r.streak+(r.streak===1?" dia":" dias")},
+  sub:{points:r=>rkCS(r), combo:r=>`certas seguidas · ${fmt(r.points)} pontos`, acc:r=>rkCS(r), best:r=>rankSub==="sim"?`${rkSim(r).n} simulado${rkSim(r).n===1?'':'s'}`:`${r.tests} teste${r.tests===1?'':'s'}`, streak:r=>`${fmt(r.points)} pontos`},
   empty:{points:"Ainda não há ninguém na classificação. Sê o primeiro.", combo:"Ainda ninguém fez uma sequência de certas.", acc:"Ainda ninguém chegou às 50 respostas.", best:"Ainda ninguém fez um teste de 30 min.", bestsim:"Ainda ninguém fez um simulado de 90 min.", streak:"Ninguém tem uma sequência ativa."}
 };
 // linhas gravadas antes da coluna «correct» existir ficam com 0 certas e pontos > 0: não se sabe as certas até a pessoa voltar ao site
 const rkC=r=>(r.correct==null||(r.correct===0&&r.points>0)||r.correct>r.answered)?null:r.correct;
 const rkCS=r=>{const c=rkC(r); return c===null?(r.correct>r.answered?`${fmt(r.correct)} certa${r.correct===1?'':'s'}`:`${fmt(r.answered)} resposta${r.answered===1?'':'s'}`):`${fmt(c)} certa${c===1?'':'s'} em ${fmt(r.answered)}`;};
+// simulado: colunas best_sim/sims; se ainda não existirem, usa os simulados que aparecem nos últimos resultados
+const rkSim=r=>{ const rec=(Array.isArray(r.recent)?r.recent:[]).filter(x=>x&&x.m==="sim"); const rb=rec.length?Math.max(...rec.map(x=>+x.ok||0)):null;
+  const b=r.best_sim!=null?Math.max(+r.best_sim,rb??-1):rb; return {b, n:Math.max(+r.sims||0,rec.length)}; };
 const rkReduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 // a página da classificação é desenhada uma vez; trocar de aba ou atualizar só mexe na lista (as linhas deslizam para a nova posição)
 async function renderRank(){
@@ -3432,7 +3435,7 @@ function rkUser(uid){
   const [d,close]=smallModal(`<div class="namecard ucard" role="dialog" aria-label="Estatísticas de ${esc(r.name||"")}">
     <button class="ux" id="uX" aria-label="Fechar"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     <div class="uhead"><span class="rkav uav">${r.emoji?emoImg(r.emoji):esc((r.name||"?").charAt(0).toUpperCase())}</span><div><h2>${esc(r.name||"Sem nome")}${me?' <span class="tag">tu</span>':''}</h2><p>${pos}.º lugar em pontos · ${fmt(r.points)} pontos</p></div></div>
-    <div class="ustats">${c===null?st(fmt(r.answered),"respostas"):st(`${fmt(c)}<small> de ${fmt(r.answered)}</small>`,"respostas certas")}${st(acc,"de acerto")}${st(r.best_combo>0?"🔥 "+r.best_combo:"—","melhor sequência")}${st(`${r.best_grade!=null?fmt(r.best_grade,1):"—"}<small> em ${fmt(r.tests||0)}</small>`,"melhor teste 30 min")}${st(`${r.best_sim!=null?fmt(+r.best_sim,1):"—"}<small> em ${fmt(r.sims||0)}</small>`,"melhor simulado 90 min")}${st(r.streak>0?r.streak+(r.streak===1?" dia":" dias"):"—","seguidos")}</div>
+    <div class="ustats">${c===null?st(fmt(r.answered),"respostas"):st(`${fmt(c)}<small> de ${fmt(r.answered)}</small>`,"respostas certas")}${st(acc,"de acerto")}${st(r.best_combo>0?"🔥 "+r.best_combo:"—","melhor sequência")}${st(`${r.best_grade!=null?fmt(r.best_grade,1):"—"}<small> em ${fmt(r.tests||0)}</small>`,"melhor teste 30 min")}${st(`${rkSim(r).b!=null?fmt(rkSim(r).b,1):"—"}<small> em ${fmt(rkSim(r).n)}</small>`,"melhor simulado 90 min")}${st(r.streak>0?r.streak+(r.streak===1?" dia":" dias"):"—","seguidos")}</div>
     <h3 class="uh3">Últimos exercícios e testes</h3>
     ${rec.length?`<div class="scroll"><table class="utab"><thead><tr><th class="udt">Quando</th><th>O quê</th><th>Resultado</th><th>Pontos</th></tr></thead><tbody>${rec.map(x=>`<tr><td class="udt">${esc(x.d||"")}</td><td class="uwh">${esc(RD_M[x.m]||x.m||"")}${x.w?" · "+esc(x.w):""}<small class="ud">${esc(x.d||"")}</small></td><td>${res(x)}</td><td>${x.p==null?"—":`<span class="${x.p>=0?'up':'down'}">${x.p>=0?"+":"−"}${fmt(Math.abs(x.p))}</span>`}</td></tr>`).join("")}</tbody></table></div>`:`<p class="umsg">${me?"Ainda não há resultados guardados. Aparecem a partir da próxima ronda que fizeres.":"Ainda não há resultados guardados. Aparecem quando esta pessoa fizer a próxima ronda."}</p>`}
   </div>`);
