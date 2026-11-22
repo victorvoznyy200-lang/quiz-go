@@ -155,6 +155,17 @@
 .mxchip:active{transform:scale(.92)}
 .sxstack{display:grid;gap:14px;max-width:560px}
 @media (max-width:640px){.sxabc .sxin{width:52px}.sxabc .sxpc{width:50px}.sxabc .mvb{margin-right:3px}.sxabc .mvb button{width:21px}.sxabc .sxseg button{width:26px}.sxabc th,.sxabc td{padding:7px 3px}.sxdat tbody th:first-child{white-space:normal;min-width:96px;font-size:.8rem}.sxdat td,.sxdat thead th{padding:7px 5px}}
+.mxp{--mv:#1f4e79;--mf:#e8720c;display:grid;grid-template-columns:44px repeat(3,minmax(0,1fr));gap:5px;max-width:480px;margin:10px 0 8px}
+.mxpv{color:var(--mv);font-weight:800;font-size:.8rem;letter-spacing:.02em;align-self:end;padding-bottom:6px}
+.mxpf{grid-column:2/5;text-align:center;color:var(--mf);font-weight:800;font-size:.8rem;letter-spacing:.02em;align-self:end;padding-bottom:6px}
+.mxpr{display:grid;place-items:center;color:var(--mv);font-weight:800;font-size:1.05rem}
+.mxpc{text-align:center;color:var(--mf);font-weight:800;font-size:1.05rem;padding-top:4px}
+.mxp .mxv{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;align-content:center;min-height:66px;border-radius:4px;background:rgba(128,128,140,.09);font-weight:800;font-size:1.05rem;color:var(--ink);border:1.5px solid transparent;transition:border-color .25s,background .25s}
+.mxp .mxv.zf{background:rgba(232,114,12,.13)}.mxp .mxv.zv{background:rgba(46,111,158,.14)}.mxp .mxv.zfv{background:linear-gradient(135deg,rgba(232,114,12,.14),rgba(46,111,158,.16))}
+.mxp.mxin .mxv{cursor:pointer;padding:5px}
+#mxWrap.picking .mxp .mxv{border-color:var(--acc);border-style:dashed}
+:root[data-mode="dark"] .mxp{--mv:#8cbbe8;--mf:#ff9a45}
+.mxlg{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin:0 0 6px}.mxlg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
 .sxhint{margin:4px 0 8px}.mvb{display:inline-flex;gap:2px;margin-right:8px;vertical-align:middle}.mvb button{border:0;font:inherit;font-weight:700;width:26px;height:26px;border-radius:7px;background:var(--th);color:var(--muted);cursor:pointer;padding:0;line-height:1}@media (hover:hover){.mvb button:hover{color:var(--acc)}}.mvb button:active{transform:scale(.9)}
 .simai{margin-top:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}.simaic{padding:10px 12px;border-radius:10px;background:var(--acc-soft);line-height:1.5}.simaib{margin-top:4px}
 </style>
@@ -2614,7 +2625,12 @@ let mxSel=null;
 function sxMxHTML(sx){ const mx=sx.mx||{}, chip=l=>`<button class="mxchip${mxSel===l?' pick':''}" data-chip="${l}">${l}</button>`;
   const free=sx.it.filter(x=>!mx[x.l]);
   return `<div class="mxpool" id="mxPool">${free.length?free.map(x=>chip(x.l)).join(""):'<span class="faint small">Todos colocados. Toca num produto para o mudar de casa.</span>'}</div>
-  <div class="mxg mxin"><div class="mxk">Volume ↓<br>Faturação →</div>${["A","B","C"].map(c=>`<div class="mxh">${c}</div>`).join("")}${["A","B","C"].map(m=>`<div class="mxh">${m}</div>${["A","B","C"].map(f=>`<div class="mxv" data-mxc="${f+m}" role="button" aria-label="Volume ${m}, faturação ${f}">${sx.it.filter(x=>mx[x.l]===f+m).map(x=>chip(x.l)).join("")}</div>`).join("")}`).join("")}</div>`; }
+  ${mxPdf((f,m)=>sx.it.filter(x=>mx[x.l]===f+m).map(x=>chip(x.l)).join(""),true)}`; }
+// matriz como no PDF: VOLUME (azul) nas linhas à esquerda, FATURAÇÃO (laranja) por cima e letras das colunas em baixo
+function mxPdf(fill,inter){ const L=["A","B","C"];
+  return `<div class="mxp${inter?' mxin':''}"><div class="mxpv">VOLUME</div><div class="mxpf">FATURAÇÃO</div>
+  ${L.map(m=>`<div class="mxpr">${m}</div>${L.map(f=>{ const v=fill(f,m); return `<div class="mxv z${f==="A"?"f":""}${m==="A"?"v":""}${!inter&&v?" on":""}"${inter?` data-mxc="${f+m}" role="button" aria-label="Volume ${m}, faturação ${f}"`:""}>${v||""}</div>`; }).join("")}`).join("")}
+  <div></div>${L.map(f=>`<div class="mxpc">${f}</div>`).join("")}</div>`; }
 function sxMxBind(sx){ const wrap=$("#mxWrap"); if(!wrap) return;
   const redraw=(pop)=>{ wrap.innerHTML=sxMxHTML(sx); sxMxBind(sx); if(pop&&!qReduce()){ const c=wrap.querySelector(`[data-chip="${pop}"]`); if(c) c.animate([{transform:"scale(.6)",opacity:.4},{transform:"scale(1.08)",offset:.6},{transform:"none",opacity:1}],{duration:320,easing:"cubic-bezier(.2,.8,.2,1)"}); } };
   wrap.querySelectorAll("[data-chip]").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const cell=b.closest("[data-mxc]"); if(mxSel&&mxSel!==b.dataset.chip&&cell){ cell.onclick(); return; } mxSel=mxSel===b.dataset.chip?null:b.dataset.chip; wrap.querySelectorAll("[data-chip]").forEach(x=>x.classList.toggle("pick",x.dataset.chip===mxSel)); wrap.classList.toggle("picking",!!mxSel); });
@@ -2636,7 +2652,7 @@ function simExam(){
     <div class="sxabc2 sxstack">${[["f","Fatur."],["m","Volume"]].map(([k,lab])=>`<div class="scroll"><table class="sxt sxabc"><thead><tr><th>${lab}</th><th>Valor</th><th>% acum.</th><th>Classe</th></tr></thead><tbody id="sxB${k}">
     ${sxO(sx,k).map(x=>`<tr data-l="${x.l}"><th>${MVB}${x.l}</th><td>${inp(x.l,k)}</td><td><input class="sxin sxpc" inputmode="decimal" data-spc="${x.l+k}" value="${esc(String((sx.pc||{})[x.l+k]||''))}" placeholder="%" aria-label="% acumulada de ${x.l}"></td><td>${seg(x.l,k)}</td></tr>`).join("")}</tbody></table></div>`).join("")}</div>
     <p class="sxstep"><b>2.</b> Matriz cruzada (volume nas linhas, faturação nas colunas): toca num produto e depois na casa onde fica.</p>
-    <div id="mxWrap">${sxMxHTML(sx)}</div>
+    <div id="mxWrap">${sxMxHTML(sx)}</div><p class="mxlg"><span><i style="background:rgba(232,114,12,.35)"></i>Faturação A (muito capital)</span><span><i style="background:rgba(46,111,158,.35)"></i>Volume A (muito espaço)</span></p>
     <p class="sxstep"><b>3.</b> Conclusões operacionais.</p>
     ${qs.map((q,i)=>`<div class="sxq"><p><b>${i+1}.</b> ${esc(q.q)}</p><div class="sxopts">${sx.ord[i].map(k=>`<button data-ssq="${i}" data-k="${k}" class="${sx.ans[i]===k?'on':''}">${esc(q.o[k])}</button>`).join("")}</div></div>`).join("")}
   </section>
@@ -2709,7 +2725,7 @@ function simResult(quiet){
         return `<tr><th>${x.l}</th><td class="${okv?'ok':'bad'}">${fmt(x[k])}${okv?'':` <small>(tu: ${v||'—'})</small>`}</td><td class="${okp?'ok':'bad'}">${fmt(r.pc[x.l],1)}%${okp?'':` <small>(tu: ${isNaN(pv)?'—':fmt(pv,1)})</small>`}</td><td class="${okc?'ok':'bad'}">${x["c"+k]}${okc?'':` <small>(tu: ${cl||'—'})</small>`}</td></tr>`; }).join("")}</tbody></table></div>
       <p class="sub sxtot">Total: ${fmt(sx[tk])} · a tua ordem: ${r.ok?'<b style="color:var(--ok)">✓ certa</b>':`<b style="color:var(--bad)">✗ errada</b> (a tua: ${sxO(sx,k).map(x=>x.l).join(" ")})`}</p></div>`; }).join("")}</div>
     <span class="lbl">Matriz certa (volume nas linhas, faturação nas colunas)</span>
-    <div class="mxg"><div class="mxk">Volume ↓<br>Faturação →</div>${["A","B","C"].map(c=>`<div class="mxh">${c}</div>`).join("")}${["A","B","C"].map(m=>`<div class="mxh">${m}</div>${["A","B","C"].map(f=>{const v=cell(f,m);return `<div class="mxv${v?' on':''}">${v}</div>`;}).join("")}`).join("")}</div>
+    ${mxPdf((f,m)=>cell(f,m),false)}
     ${(()=>{ const mx=sx.mx||{}, bad=it.filter(x=>mx[x.l]!==x.cf+x.cm); return bad.length?`<p class="sub">Na tua matriz: ${bad.map(x=>mx[x.l]?`${x.l} estava em volume ${mx[x.l][1]} · faturação ${mx[x.l][0]}`:`${x.l} ficou por colocar`).join("; ")}.</p>`:'<p class="sub" style="color:var(--ok)">✓ A tua matriz está toda certa.</p>'; })()}
     ${qs.map((q,i)=>{ const a=sx.ans[i]; return `<div class="sxq"><p><b>${i+1}.</b> ${esc(q.q)}</p><p style="color:var(${a===0?"--ok":"--bad"})">${a===0?'✓ Certo':'✗ '+(a==null?'Não respondeste':'Escolheste «'+esc(q.o[a])+'»')}. Certa: <b>${esc(q.o[0])}</b>.</p><p class="sub">${esc(q.e)}</p></div>`; }).join("")}
   </section>
@@ -3263,7 +3279,7 @@ async function sbPull(){
   sbPulling=false;
 }
 // versão nova publicada? recarrega quando a página volta a ficar visível e não há ronda a meio (evita aparelhos com código antigo)
-const BUILD="1795364279";
+const BUILD="1795367559";
 let updPending=false;
 async function checkUpdate(){ if(!SB||!/^\d+$/.test(BUILD)) return; try{ const r=await fetch("version.txt?"+Date.now(),{cache:"no-store"}); if(!r.ok) return; const v=(await r.text()).trim(); if(/^\d+$/.test(v)&&v!==BUILD){ updPending=true; updPop(); } }catch(e){} }
 // Aviso de atualização: só aparece fora de uma ronda (no fim de cada grupo de perguntas)
